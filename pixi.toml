@@ -1,0 +1,135 @@
+[project]
+name = "casa6-dev"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64"]  # Removed osx-arm64 due to SWIG compatibility
+
+[dependencies]
+# Core build dependencies (all platforms)
+cmake = ">=3.16"
+make = "*"
+ninja = "*"
+
+# CASA dependencies based on conda-forge recipes (common to all platforms)
+python = ">=3.8"
+numpy = ">=1.20"
+cython = ">=0.29"
+pybind11 = ">=2.6"
+boost-cpp = ">=1.70"
+casacore = ">=3.5"
+wcslib = ">=7.7"
+cfitsio = ">=4.0"
+fftw = ">=3.3"
+gsl = ">=2.6"
+hdf5 = ">=1.12"
+openblas = "*"
+lapack = "*"
+readline = "*"
+ncurses = "*"
+libxml2 = "*"
+libxslt = "*"
+grpc-cpp = ">=1.40"
+protobuf = ">=3.19"
+eigen = ">=3.3"
+xerces-c = "*"  # XML parsing library
+
+# Python dependencies
+setuptools = "*"
+setuptools_scm = "*"
+wheel = "*"
+pip = "*"
+pytest = "*"
+casaconfig = "*"  # Pure Python package that casatools depends on
+pyerfa = "*"
+scipy = "*"
+
+# Additional tools
+git = "*"
+curl = "*"
+rsync = "*"
+ccache = "*"  # Compiler cache for faster rebuilds
+
+# Platform-specific dependencies
+[target.linux-64.dependencies]
+gcc_linux-64 = "*"
+gxx_linux-64 = "*"
+gfortran_linux-64 = "*"  # Fortran compiler for Linux
+libgomp = "*"  # OpenMP support (Linux)
+pytest-xvfb = "*"  # For headless testing on Linux
+libsakura = ">=5.0"  # Available on Linux
+swig = ">=3.0,<4"  # SWIG for Python bindings - CASA requires < 4
+#swig = ">=3.0"    # Does casatools build with SWIG 4???????
+
+[target.osx-64.dependencies]
+clang = "*"
+clangxx = "*"
+gfortran = "*"  # Fortran compiler for Intel Mac
+llvm-openmp = "*"  # OpenMP support for Intel Mac
+libsakura = ">=5.0"  # Available on Intel Mac
+swig = ">=3.0,<4"  # SWIG for Python bindings - CASA requires < 4
+
+[target.osx-arm64.dependencies]
+clang = "*"
+clangxx = "*"
+gfortran = "*"  # Fortran compiler for ARM Mac
+llvm-openmp = "*"  # OpenMP support for ARM Mac
+swig = "*"  # Use whatever SWIG version is available on ARM64
+# Note: libsakura not available on ARM64 - will be handled in build scripts
+
+# Features for different configurations
+[feature.intel-mac]
+platforms = ["osx-64"]
+
+[feature.arm-mac]
+platforms = ["osx-arm64"]
+
+[feature.linux]
+platforms = ["linux-64"]
+
+[feature.dev.dependencies]
+ipython = "*"
+jupyter = "*"
+matplotlib = "*"
+
+# Environment configurations
+[environments]
+# Default environment (all platforms)
+default = ["dev"]
+
+# Platform-specific environments
+intel-mac = {features = ["intel-mac", "dev"], solve-group = "intel"}
+arm-mac = {features = ["arm-mac", "dev"], solve-group = "arm"}
+linux-dev = {features = ["linux", "dev"], solve-group = "linux"}
+
+# Build-only environments (no dev tools)
+build-intel = {features = ["intel-mac"], solve-group = "build-intel"}
+build-arm = {features = ["arm-mac"], solve-group = "build-arm"}
+build-linux = {features = ["linux"], solve-group = "build-linux"}
+
+[tasks]
+clone-repo = "bash build-scripts/clone-repo.sh"
+clone-dev = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
+update-submodules = "cd src/casa6 && git submodule update --recursive"
+build-casacore = "bash build-scripts/build-casacore.sh"
+build-casacpp = "bash build-scripts/build-casacpp.sh"
+build-casatools = "bash build-scripts/build-casatools.sh"
+build-casatasks = "bash build-scripts/build-casatasks.sh"
+build-all = {depends-on = ["clone-repo", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+build-dev = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+clean = "rm -rf build/ dist/ src/casa6/build/"
+clean-all = "rm -rf build/ dist/ src/casa6/build/ .ccache/"
+ccache-stats = "ccache --show-stats"
+ccache-clear = "ccache --clear"
+test = "python -m pytest tests/"
+
+# Platform-specific tasks
+[tasks.build-intel]
+cmd = "pixi run -e intel-mac build-all"
+description = "Build for Intel Mac"
+
+[tasks.build-arm]
+cmd = "pixi run -e arm-mac build-all"
+description = "Build for ARM Mac"
+
+[tasks.build-linux]
+cmd = "pixi run -e linux-dev build-all"
+description = "Build for Linux"

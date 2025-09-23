@@ -1,0 +1,61 @@
+*** casatools/src/code/msvis/MSVis/statistics/Vi2DataProvider.h.orig	Sat Sep 20 14:12:37 2025
+--- casatools/src/code/msvis/MSVis/statistics/Vi2DataProvider.h	Sat Sep 20 14:55:48 2025
+***************
+*** 121,128 ****
+  	}
+  
+  	Vi2DataProvider(Vi2DataProvider&& other)
+! 		: vi2(other.vi2)
+! 		, mergedColumns(other.mergedColumns)
+  		, datasetIndex(other.datasetIndex)
+  		, datasetChunkOrigin(other.datasetChunkOrigin)
+  		, followingChunkDatasetIndex(other.followingChunkDatasetIndex)
+--- 121,127 ----
+  	}
+  
+  	Vi2DataProvider(Vi2DataProvider&& other)
+! 		: mergedColumns(other.mergedColumns)
+  		, datasetIndex(other.datasetIndex)
+  		, datasetChunkOrigin(other.datasetChunkOrigin)
+  		, followingChunkDatasetIndex(other.followingChunkDatasetIndex)
+***************
+*** 133,143 ****
+  		, data_iterator(other.data_iterator)
+  		, weights_iterator(other.weights_iterator)
+  		, mask_iterator(other.mask_iterator) {
+! 		other.vi2 = nullptr;
+  	}
+  
+  	Vi2DataProvider& operator=(Vi2DataProvider&& other) {
+- 		vi2 = other.vi2;
+  		mergedColumns = other.mergedColumns;
+  		datasetIndex = other.datasetIndex;
+  		datasetChunkOrigin = other.datasetChunkOrigin;
+--- 132,141 ----
+  		, data_iterator(other.data_iterator)
+  		, weights_iterator(other.weights_iterator)
+  		, mask_iterator(other.mask_iterator) {
+! 		vi2 = std::move(other.vi2);
+  	}
+  
+  	Vi2DataProvider& operator=(Vi2DataProvider&& other) {
+  		mergedColumns = other.mergedColumns;
+  		datasetIndex = other.datasetIndex;
+  		datasetChunkOrigin = other.datasetChunkOrigin;
+***************
+*** 149,155 ****
+  		data_iterator = other.data_iterator;
+  		weights_iterator = other.weights_iterator;
+  		mask_iterator = other.mask_iterator;
+! 		other.vi2 = nullptr;
+  		return *this;
+  	}
+  
+--- 147,153 ----
+  		data_iterator = other.data_iterator;
+  		weights_iterator = other.weights_iterator;
+  		mask_iterator = other.mask_iterator;
+! 		vi2 = std::move(other.vi2);
+  		return *this;
+  	}
+  

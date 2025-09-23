@@ -1,0 +1,20 @@
+*** casatools/setup.py.orig	Sun Sep 21 16:18:09 2025
+--- casatools/setup.py	Sun Sep 21 16:18:33 2025
+***************
+*** 104,110 ****
+          # https://setuptools.pypa.io/en/latest/userguide/extension.html#setuptools.command.build.SubCommand.build_lib
+          casatools_dir = os.path.join(self.build_lib, 'casatools')
+          if not os.path.isdir(casatools_dir):
+!             raise RuntimeError(f'casatools build dir ({casatools_dir}) is not a directory!')
+          print(f' * Found destination dir for SWIG generated tool modules / .py files: {casatools_dir}')
+          print(f' * Copying SWIG generated files for every tool module into {casatools_dir}...')
+          for fname in glob.glob('src/casatools/*.py'):
+--- 104,111 ----
+          # https://setuptools.pypa.io/en/latest/userguide/extension.html#setuptools.command.build.SubCommand.build_lib
+          casatools_dir = os.path.join(self.build_lib, 'casatools')
+          if not os.path.isdir(casatools_dir):
+!             print(f'Creating casatools build dir: {casatools_dir}')
+!             os.makedirs(casatools_dir, exist_ok=True)
+          print(f' * Found destination dir for SWIG generated tool modules / .py files: {casatools_dir}')
+          print(f' * Copying SWIG generated files for every tool module into {casatools_dir}...')
+          for fname in glob.glob('src/casatools/*.py'):

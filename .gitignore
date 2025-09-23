@@ -1,0 +1,16 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# Emacs editing
+*~
+
+# Source code (cloned separately)
+src/
+
+# ccache etc.
+tmp/
+
+# macOS
+.DS_Store
+

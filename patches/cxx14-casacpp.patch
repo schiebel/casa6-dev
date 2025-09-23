@@ -1,0 +1,25 @@
+*** casatools/src/code/CMakeLists.txt.orig	Sat Sep 20 15:29:24 2025
+--- casatools/src/code/CMakeLists.txt	Sat Sep 20 15:30:12 2025
+***************
+*** 55,64 ****
+      STRING "Choose the type of build." FORCE)
+  endif()
+  
+! set(CMAKE_CXX_STANDARD 17)
+  message (STATUS "CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+! set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  message (STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+  
+  #if (APPLE)
+--- 55,64 ----
+      STRING "Choose the type of build." FORCE)
+  endif()
+  
+! set(CMAKE_CXX_STANDARD 14)
+  message (STATUS "CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+! set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  message (STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+  
+  #if (APPLE)

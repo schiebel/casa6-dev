@@ -1,0 +1,54 @@
+*** casatools/setup.py.orig2	Sun Sep 21 16:46:58 2025
+--- casatools/setup.py	Sun Sep 21 21:02:35 2025
+***************
+*** 214,229 ****
+                  fortran_compiler = os.environ.get('FC')
+              else:
+                  fortran_compiler = 'gfortran'
+!             
+              try:
+!                 gcc_dir = os.path.join(os.path.dirname(os.path.dirname(shutil.which(fortran_compiler))),'lib','libgcc')
+              except:
+                  raise Exception("Couldn't get the libgcc path. Try setting the FC environment variable to your gfortran compiler.")
+!             
+              casac_lib_dir = extdir + "/casatools/__casac__/lib"
+-             copy_tree(gcc_dir, casac_lib_dir)
+  
+!     
+          # Collect all the libraries in a private directory and set relative rpaths
+          if mod_closure:
+              if isexe("scripts/mod-closure"):
+--- 214,246 ----
+                  fortran_compiler = os.environ.get('FC')
+              else:
+                  fortran_compiler = 'gfortran'
+! 
+              try:
+!                 # First try the traditional path
+!                 base_dir = os.path.dirname(os.path.dirname(shutil.which(fortran_compiler)))
+!                 gcc_dir = os.path.join(base_dir, 'lib', 'libgcc')
+! 
+!                 # If libgcc directory doesn't exist, try conda environment lib directly
+!                 if not os.path.isdir(gcc_dir):
+!                     gcc_dir = os.path.join(os.environ.get('CONDA_PREFIX', ''), 'lib')
+! 
+              except:
+                  raise Exception("Couldn't get the libgcc path. Try setting the FC environment variable to your gfortran compiler.")
+! 
+              casac_lib_dir = extdir + "/casatools/__casac__/lib"
+  
+!             # Copy libgcc files (handle both directory and individual files)
+!             if os.path.isdir(gcc_dir):
+!                 # Copy libgcc* files from the lib directory
+!                 import glob
+!                 os.makedirs(casac_lib_dir, exist_ok=True)
+!                 for libgcc_file in glob.glob(os.path.join(gcc_dir, 'libgcc*')):
+!                     if os.path.isfile(libgcc_file):
+!                         shutil.copy2(libgcc_file, casac_lib_dir)
+!                         print(f"Copied {libgcc_file} to {casac_lib_dir}")
+!             else:
+!                 print(f"Warning: libgcc directory {gcc_dir} not found, skipping libgcc copy")
+! 
+          # Collect all the libraries in a private directory and set relative rpaths
+          if mod_closure:
+              if isexe("scripts/mod-closure"):

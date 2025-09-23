@@ -1,0 +1,33 @@
+*** casatools/casacore/casa/Arrays/Array2Math.cc.orig	Sat Sep 20 15:38:24 2025
+--- casatools/casacore/casa/Arrays/Array2Math.cc	Sat Sep 20 16:20:35 2025
+***************
+*** 94,106 ****
+  void amplitude(Array<float> &rarray, const Array<std::complex<float>> &carray)
+  {
+    checkArrayShapes (carray, rarray, "amplitude");
+!   arrayTransform (carray, rarray, std::abs<float>);
+  }
+  
+  void amplitude(Array<double> &rarray, const Array<std::complex<double>> &carray)
+  {
+    checkArrayShapes (carray, rarray, "amplitude");
+!   arrayTransform (carray, rarray, std::abs<double>);
+  }
+  
+  void phase(Array<float> &rarray, const Array<std::complex<float>> &carray)
+--- 94,108 ----
+  void amplitude(Array<float> &rarray, const Array<std::complex<float>> &carray)
+  {
+    checkArrayShapes (carray, rarray, "amplitude");
+!   auto abs_func = [](std::complex<float> x) { return std::abs(x); };
+!   arrayTransform (carray, rarray, abs_func);
+  }
+  
+  void amplitude(Array<double> &rarray, const Array<std::complex<double>> &carray)
+  {
+    checkArrayShapes (carray, rarray, "amplitude");
+!   auto abs_func = [](std::complex<double> x) { return std::abs(x); };
+!   arrayTransform (carray, rarray, abs_func);
+  }
+  
+  void phase(Array<float> &rarray, const Array<std::complex<float>> &carray)

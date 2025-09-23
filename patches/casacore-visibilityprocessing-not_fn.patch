@@ -1,0 +1,12 @@
+*** casatools/src/code/msvis/MSVis/VisibilityProcessing.cc.orig	Sat Sep 20 15:36:29 2025
+--- casatools/src/code/msvis/MSVis/VisibilityProcessing.cc	Sun Sep 21 14:21:04 2025
+***************
+*** 14,19 ****
+--- 14,20 ----
+  
+  #include <casacore/casa/System/AipsrcValue.h>
+  
++ #include <functional>
+  #include <algorithm>
+  #include <list>
+  #include <stdarg.h>

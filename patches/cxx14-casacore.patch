@@ -1,0 +1,19 @@
+*** casatools/casacore/CMakeLists.txt.orig	Sat Sep 20 15:27:16 2025
+--- casatools/casacore/CMakeLists.txt	Sat Sep 20 15:27:23 2025
+***************
+*** 204,210 ****
+  endif (NOT CMAKE_BUILD_TYPE)
+  
+  # Require a C++17 compatible compiler
+! set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  
+  # Ensure clang is not complaining about unused arguments.
+--- 204,210 ----
+  endif (NOT CMAKE_BUILD_TYPE)
+  
+  # Require a C++17 compatible compiler
+! set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  
+  # Ensure clang is not complaining about unused arguments.

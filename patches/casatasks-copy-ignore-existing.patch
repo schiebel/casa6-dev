@@ -1,0 +1,53 @@
+*** casatasks/setup.py.orig	Sun Sep 21 21:23:47 2025
+--- casatasks/setup.py	Sun Sep 21 21:26:02 2025
+***************
+*** 308,314 ****
+  
+  def mkpath(path):
+      try:
+!         os.makedirs(path)
+      except OSError as exc:
+          if exc.errno == errno.EEXIST and os.path.isdir(path):
+              pass
+--- 308,314 ----
+  
+  def mkpath(path):
+      try:
+!         os.makedirs(path, exist_ok=True)
+      except OSError as exc:
+          if exc.errno == errno.EEXIST and os.path.isdir(path):
+              pass
+***************
+*** 415,421 ****
+  
+      def xml_jar_fetch(self,xml_jar_path, xml_jar_url ):
+          if not os.path.exists(os.path.dirname(xml_jar_path)):
+!             os.makedirs(os.path.dirname(xml_jar_path))
+          if not os.path.exists( xml_jar_path ):
+              with request.urlopen(xml_jar_url) as istream, open(xml_jar_path,'wb') as fd:
+                  copyfileobj( istream, fd )
+--- 415,421 ----
+  
+      def xml_jar_fetch(self,xml_jar_path, xml_jar_url ):
+          if not os.path.exists(os.path.dirname(xml_jar_path)):
+!             os.makedirs(os.path.dirname(xml_jar_path),exist_ok=True)
+          if not os.path.exists( xml_jar_path ):
+              with request.urlopen(xml_jar_url) as istream, open(xml_jar_path,'wb') as fd:
+                  copyfileobj( istream, fd )
+***************
+*** 453,459 ****
+          for x in xml_files:
+              copy2(x,xmldir)
+  
+!         os.makedirs(os.path.join(moduledir, 'tests'))
+          f = open("{}/__init__.py".format(os.path.join(moduledir, 'tests')), "w")
+          f.close()
+          copy2('tests/test_casatasks.py',os.path.join(moduledir, 'tests'))
+--- 453,459 ----
+          for x in xml_files:
+              copy2(x,xmldir)
+  
+!         os.makedirs(os.path.join(moduledir, 'tests'),exist_ok=True)
+          f = open("{}/__init__.py".format(os.path.join(moduledir, 'tests')), "w")
+          f.close()
+          copy2('tests/test_casatasks.py',os.path.join(moduledir, 'tests'))
