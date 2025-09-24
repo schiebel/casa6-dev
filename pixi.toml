@@ -1,7 +1,7 @@
 [project]
 name = "casa6-dev"
 channels = ["conda-forge"]
-platforms = ["linux-64", "osx-64"]  # Removed osx-arm64 due to SWIG compatibility
+platforms = ["linux-64", "osx-64", "osx-arm64"]
 
 [dependencies]
 # Core build dependencies (all platforms)
@@ -56,8 +56,7 @@ gfortran_linux-64 = "*"  # Fortran compiler for Linux
 libgomp = "*"  # OpenMP support (Linux)
 pytest-xvfb = "*"  # For headless testing on Linux
 libsakura = ">=5.0"  # Available on Linux
-swig = ">=3.0,<4"  # SWIG for Python bindings - CASA requires < 4
-#swig = ">=3.0"    # Does casatools build with SWIG 4???????
+swig = "*"    # Does casatools build with SWIG 4???????
 
 [target.osx-64.dependencies]
 clang = "*"
@@ -65,7 +64,7 @@ clangxx = "*"
 gfortran = "*"  # Fortran compiler for Intel Mac
 llvm-openmp = "*"  # OpenMP support for Intel Mac
 libsakura = ">=5.0"  # Available on Intel Mac
-swig = ">=3.0,<4"  # SWIG for Python bindings - CASA requires < 4
+swig = "*"  # SWIG for Python bindings - CASA requires < 4
 
 [target.osx-arm64.dependencies]
 clang = "*"
