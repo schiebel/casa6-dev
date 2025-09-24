@@ -18,7 +18,7 @@ This build process was created because I needed a build of
 no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*], and
 *indeed*, Apple will also soon no longer support Intel MacBooks. However, this
 unfortunately means that Intel MacBooks are the only platform with which this
-build process has been tested. The version of casa6 that this was tested with was
+build process has been tested. The version of casa6 tested was
 `6.7.3.0 <https://open-bitbucket.nrao.edu/projects/CASA/repos/casa6/commits/6d3646c1b9c5296e4b63798ad8ba722e3fe137a4>`__.
 Below are the `pixi <https://pixi.sh/latest/>`__ commands to build
 ``casatools`` and ``casatasks``. 
