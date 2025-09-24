@@ -16,7 +16,7 @@ Useful pixi Commands
 This build process was created because I needed a build of
 `CASA6 <casa.nrao.edu>`__ for an Intel MacBook. CASA
 no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*], and
-indeed, soon Apple will not longer support Intel MacBooks. For this
+*indeed*, Apple will also soon no longer support Intel MacBooks. For this
 reason, Intel MacBooks are the only platform with which this build process has
 been tested. Below are the useful `pixi <https://pixi.sh/latest/>`__ commands.
 
