@@ -114,10 +114,11 @@ build-casatools = "bash build-scripts/build-casatools.sh"
 build-casatasks = "bash build-scripts/build-casatasks.sh"
 build-all = {depends-on = ["clone-repo", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
-clean = "rm -rf build/ dist/ src/casa6/build/"
-clean-all = "rm -rf build/ dist/ src/casa6/build/ .ccache/"
-ccache-stats = "ccache --show-stats"
-ccache-clear = "ccache --clear"
+clean = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build"
+clean-all = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build src/casa6/casatasks/dist src/casa6/casatools/dist tmp/ccache"
+ccache-stats = "ccache -d tmp/ccache --show-stats"
+ccache-cleanup = "ccache -d tmp/ccache --cleanup"
+ccache-clear = "ccache -d tmp/ccache --clear"
 test = "python -m pytest tests/"
 
 # Platform-specific tasks
