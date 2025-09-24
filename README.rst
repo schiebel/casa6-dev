@@ -62,5 +62,5 @@ After the build completes **successfully**, the wheels should be found in:
 
 ``casaconfig`` most *somehow* be installed or provided. I just unpack the
 wheels with ``unzip`` and make sure the unziped directories along with
-``casaconfig`` are available in my `PYTHONPATH` ( *or the current directory* ).
+``casaconfig`` are available in my ``PYTHONPATH`` ( *or the current directory* ).
 
