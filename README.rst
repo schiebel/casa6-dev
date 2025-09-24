@@ -90,7 +90,7 @@ Environment Management
 
 ccache Management
 ~~~~~~~~~~~~~~~~~
-The commands uses ``ccache`` for all builds. The ccache directory in beneath the
+The commands use ``ccache`` for all builds. The ccache directory in beneath the
 ``tmp`` directory.
 
 - ``pixi run ccache-stats``
