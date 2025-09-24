@@ -6,7 +6,7 @@ This directory contains the build artifacts for building
 `CASA6 <casa.nrao.edu>`__ with `pixi <https://pixi.sh/latest/>`__, which is a
 wrapper around a `conda installation <https://mamba.readthedocs.io/en/latest/>`__.
 A ``pixi.toml`` file is created to configure package constraints in a declarative
-manner. From this `pixi <https://pixi.sh/latest/>`__, creates a ``pixi.lock`` file
+manner. From this, `pixi <https://pixi.sh/latest/>`__ creates a ``pixi.lock`` file
 which ensures that the build is reproducable.
 
 To use this, you must install `pixi <https://pixi.sh/latest/>`__.
