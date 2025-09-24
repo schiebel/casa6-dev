@@ -14,10 +14,11 @@ To use this, you must install `pixi <https://pixi.sh/latest/>`__.
 Useful pixi Commands
 --------------------
 This build process was created because I needed a build of
-`CASA6 <casa.nrao.edu>`__ for an Intel MacBook because CASA
-no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*]. For this
-reason, Intel MacBooks are the only platform currently tested. Below are the 
-useful `pixi <https://pixi.sh/latest/>`__ commands.
+`CASA6 <casa.nrao.edu>`__ for an Intel MacBook. CASA
+no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*], and
+indeed, soon Apple will not longer support Intel MacBooks. For this
+reason, Intel MacBooks are the only platform with which this build process has
+been tested. Below are the useful `pixi <https://pixi.sh/latest/>`__ commands.
 
 The `pixi <https://pixi.sh/latest/>`__ configuration is controled by the
 the ``pixi.toml`` file. It provides the constraints that pixi uses to direct
