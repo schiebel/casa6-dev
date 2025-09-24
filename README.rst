@@ -42,7 +42,7 @@ Test Build Environment
   See which version of Python is actually being used. Substitute other commands to
   check things out.
 - ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
-  See the path to NumPy ( *from the ``NumPy`` conda issue!* )
+  See the path to NumPy ( *from the NumPy conda issue!* )
 
 Build components in order
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,6 +65,9 @@ Environment Management
 - ``pixi reinstall --environment intel-mac``
   Rebuild the environment from scratch. This was useful once when the ``NumPy``
   conda install seemed to be missing the NumPy header files.
+- ``pixi update swig``
+  The update command can be used to update individual packages. Be sure to also
+  update ``pixi.toml`` if there are related constraints for the updated package.
 
 Where Are The Wheels
 --------------------
@@ -74,6 +77,18 @@ After the build completes **successfully**, the wheels should be found in:
 - ``src/casa6/casatools/dist``
 - ``src/casa6/casatasks/dist``
 
-``casaconfig`` most *somehow* be installed or provided. I just unpack the
+``casaconfig`` must *somehow* be installed or provided. I just unpack the
 wheels with ``unzip`` and make sure the unziped directories along with
 ``casaconfig`` are available in my ``PYTHONPATH`` ( *or the current directory* ).
+
+Other Details
+~~~~~~~~~~~~~
+
+``pixi clean`` does not delete the source code directory so if you really want
+to start from scratch it doesn't hurt to remove the source code directory to
+insure a clean build:
+
+- ``rm -rf src``
+
+The build uses ``ccache`` so this might currently be required for all builds.
+The ccache directory in beneath the ``tmp`` directory.
