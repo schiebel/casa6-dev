@@ -61,7 +61,7 @@ Test Build Environment
   See which version of Python is actually being used. Substitute other commands to
   check things out.
 - ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
-  See the path to NumPy ( *from the NumPy conda issue!* )
+  See the path to NumPy.
 
 Build components in order
 ~~~~~~~~~~~~~~~~~~~~~~~~~
