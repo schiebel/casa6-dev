@@ -14,7 +14,7 @@ To use this, you must install `pixi <https://pixi.sh/latest/>`__.
 The version of `SWIG <https://www.swig.org/>`__ is pinned to ``>=3.0,<4`` because
 I don't know if version four is currently supported by ``casatools`` this is
 problematic for ARM versions of macos because conda does not have an ARM version
-of SWIG 3.
+of SWIG 3, so I need to investigate this problem.
 
 Useful pixi Commands
 --------------------
