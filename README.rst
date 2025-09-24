@@ -97,5 +97,5 @@ The ``pixi.toml`` file provides the constraints that direct the creation of
 ``pixi.lock`` by `pixi <https://pixi.sh/latest/>`__. If you want to generate
 a completely new environment resolution, delete ``pixi.lock``. This will
 result in `pixi <https://pixi.sh/latest/>`__ generating a list of new
-package versions which satisfies the constraints provide in ``pixi.toml``.
+package versions which satisfy the constraints provide in ``pixi.toml``.
 
