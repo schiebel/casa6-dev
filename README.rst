@@ -49,7 +49,7 @@ Run Very Simple Test
 ~~~~~~~~~~~~~~~~~~~~
 While this test is run by default as part of the ``build-all`` task, it can also be run by itself
 
-- ``pixi run -e intel-mac
+- ``pixi run -e intel-mac``
 
 
 Where Are The Wheels
