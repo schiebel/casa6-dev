@@ -1,6 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
+# Fetch libsakura if URL is provided
+if [[ -n "${LIBSAKURA_URL:-}" ]]; then
+    echo "Fetching libsakura from: $LIBSAKURA_URL"
+    mkdir -p src
+    (cd src && (curl -fsSL "${LIBSAKURA_URL}" | tar -zxf - || { echo "Download or extraction of libsakura failed"; exit 1; } ) )
+else
+    echo "No LIBSAKURA_URL provided, cannot download libsakura"
+    exit 1
+fi
+
 echo "Cloning CASA6 repository..."
 
 # Check for development mode flag
@@ -117,14 +127,3 @@ else
     echo "✗ casacore submodule is MISSING - build will fail"
     exit 1
 fi
-```# CASA6 Pixi Build Workflow
-
-This workflow will help you build the latest unreleased versions of `casatools` and `casatasks` from the NRAO casa6 repository using pixi.
-
-## Prerequisites
-
-1. Install [pixi](https://pixi.sh/)
-2. Ensure you have Git installed
-3. Access to the NRAO casa6 repository
-
-## Project Structure

@@ -7,6 +7,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64"]
 # Core build dependencies (all platforms)
 cmake = ">=3.16"
 make = "*"
+grep = "*"
 ninja = "*"
 
 # CASA dependencies based on conda-forge recipes (common to all platforms)
@@ -31,6 +32,8 @@ grpc-cpp = ">=1.40"
 protobuf = ">=3.19"
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
+# Note: libsakura not available on mac arm so it is handled by a build script
+log4cxx = "*"  # Logging framework for C++ (required by libsakura)
 
 # Python dependencies
 setuptools = "*"
@@ -47,6 +50,7 @@ git = "*"
 curl = "*"
 rsync = "*"
 ccache = "*"  # Compiler cache for faster rebuilds
+openjdk = "21.*"
 
 # Platform-specific dependencies
 [target.linux-64.dependencies]
@@ -55,7 +59,6 @@ gxx_linux-64 = "*"
 gfortran_linux-64 = "*"  # Fortran compiler for Linux
 libgomp = "*"  # OpenMP support (Linux)
 pytest-xvfb = "*"  # For headless testing on Linux
-libsakura = ">=5.0"  # Available on Linux
 swig = "*"    # Does casatools build with SWIG 4???????
 
 [target.osx-64.dependencies]
@@ -63,7 +66,6 @@ clang = "*"
 clangxx = "*"
 gfortran = "*"  # Fortran compiler for Intel Mac
 llvm-openmp = "*"  # OpenMP support for Intel Mac
-libsakura = ">=5.0"  # Available on Intel Mac
 swig = "*"  # SWIG for Python bindings - CASA requires < 4
 
 [target.osx-arm64.dependencies]
@@ -72,7 +74,6 @@ clangxx = "*"
 gfortran = "*"  # Fortran compiler for ARM Mac
 llvm-openmp = "*"  # OpenMP support for ARM Mac
 swig = "*"  # Use whatever SWIG version is available on ARM64
-# Note: libsakura not available on ARM64 - will be handled in build scripts
 
 # Features for different configurations
 [feature.intel-mac]
@@ -105,14 +106,15 @@ build-arm = {features = ["arm-mac"], solve-group = "build-arm"}
 build-linux = {features = ["linux"], solve-group = "build-linux"}
 
 [tasks]
-clone-repo = "bash build-scripts/clone-repo.sh"
+clone-repo = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz bash build-scripts/clone-repo.sh"
+build-libsakura = "bash build-scripts/build-libsakura.sh"
 clone-dev = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
 build-casacore = "bash build-scripts/build-casacore.sh"
 build-casacpp = "bash build-scripts/build-casacpp.sh"
 build-casatools = "bash build-scripts/build-casatools.sh"
 build-casatasks = "bash build-scripts/build-casatasks.sh"
-build-all = {depends-on = ["clone-repo", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+build-all = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 clean = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build"
 clean-all = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build src/casa6/casatasks/dist src/casa6/casatools/dist tmp/ccache"
