@@ -41,5 +41,7 @@ apply_patch_simple "casacore-visibilityprocessing-not_fn.patch" "not_fn undefine
 apply_patch_simple "casatools-builddir-fix.patch" "fix casatools setup.py"
 apply_patch_simple "casatools-wheel-libgcc-fix.patch" "fix casatool wheel bundling of libgcc"
 apply_patch_simple "casatasks-copy-ignore-existing.patch" "fix copy commands so they do not fail for existing dest"
+apply_patch_simple "casacore-remove-pipe.patch" "remove casacore -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
+apply_patch_simple "casacpp-remove-pipe.patch" "remove casacpp -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
 
 echo "All patch operations completed"

@@ -51,6 +51,8 @@ curl = "*"
 rsync = "*"
 ccache = "*"  # Compiler cache for faster rebuilds
 openjdk = "21.*"
+pkg-config = ">=0.29.2,<0.30"
+libxml2-devel = ">=2.15.0,<3"
 
 # Platform-specific dependencies
 [target.linux-64.dependencies]
@@ -64,7 +66,12 @@ swig = "*"    # Does casatools build with SWIG 4???????
 [target.osx-64.dependencies]
 clang = "*"
 clangxx = "*"
-gfortran = "*"  # Fortran compiler for Intel Mac
+#gfortran_osx-64 = ">=12,<14" # 15 also fails
+#gfortran_osx-64 = ">=12,!=14.*" # On Sonoma (14.6.1) gfortran builds fail and 14.* is bad
+#gfortran_osx-64 = ">=12"   # On Sonoma (14.6.1) gfortran builds fail
+gfortran_osx-64 = "13.*"
+libgfortran5 = "13.*"
+pkg-config = "*"
 llvm-openmp = "*"  # OpenMP support for Intel Mac
 swig = "*"  # SWIG for Python bindings - CASA requires < 4
 

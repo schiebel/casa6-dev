@@ -1,0 +1,18 @@
+--- casatools/casacore/CMakeLists.txt.orig	2025-10-19 22:11:39
++++ casatools/casacore/CMakeLists.txt	2025-10-19 22:12:47
+@@ -284,6 +284,15 @@
+ include (CTest)
+ 
+ if (_usefortran)
++  ##
++  ## on macOS Sonoma (14.6.1) it sometimes happens that '-pipe' results in errors like:
++  ##
++  ##    bash$ gfortran -march=core2 -mtune=haswell -ftree-vectorize -fPIC -fstack-protector -O2 -pipe -isystem /Users/drs/develop/casa/casa6-dev/.pixi/envs/intel-mac/include -isysroot /Applications/Xcode-16.4.0.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk test.f -o test
++  ##
++  ##    clang: error: no input files
++  ##
++  string(REPLACE "-pipe" "" CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}")
++
+   enable_language (Fortran)
+ 
+   # use faster fortran rules for complex operations, removes restoring complex

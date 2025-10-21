@@ -1,0 +1,18 @@
+--- casatools/src/code/CMakeLists.txt.orig	2025-10-19 22:54:32
++++ casatools/src/code/CMakeLists.txt	2025-10-19 22:59:20
+@@ -24,6 +24,15 @@
+ # Minimum cmake required version
+ cmake_minimum_required(VERSION 3.12)
+ 
++##
++## on macOS Sonoma (14.6.1) it sometimes happens that '-pipe' results in errors like:
++##
++##    bash$ gfortran -march=core2 -mtune=haswell -ftree-vectorize -fPIC -fstack-protector -O2 -pipe -isystem /Users/drs/develop/casa/casa6-dev/.pixi/envs/intel-mac/include -isysroot /Applications/Xcode-16.4.0.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk test.f -o test
++##
++##    clang: error: no input files
++##
++string(REPLACE "-pipe" "" CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}")
++
+ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/version
+     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+     OUTPUT_VARIABLE CASACPP_VERSION)
