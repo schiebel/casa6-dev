@@ -1,6 +1,6 @@
-######################
+======================
 Automated CASA6 Builds
-######################
+======================
 
 This directory contains the build artifacts for building
 `CASA6 <casa.nrao.edu>`__ with `pixi <https://pixi.sh/latest/>`__, which is a
@@ -12,7 +12,7 @@ which ensures that the build is reproducable.
 To use this, you must install `pixi <https://pixi.sh/latest/>`__.
 
 Useful pixi Commands
-********************
+====================
 This build process was created because I needed a build of
 `CASA6 <casa.nrao.edu>`__ for an Intel MacBook. CASA
 no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*], and
@@ -36,8 +36,8 @@ To keep local edits, add ``DEVELOPMENT_MODE=true`` to the beginning of all
 ``pixi run ...`` commands or ``export`` it as an environment variable. *Maybe
 this will be made smarter in the future.*
 
-Build casatools and casatasks
-*****************************
+Complete build casatools and casatasks
+======================================
 - ``VERBOSE=1 pixi run -e intel-mac build-all``
   This is the only command you need to execute to build ``casatools`` and ``casatasks``. The
   remaining examples are useful but not required for a simple *one shot* build. To build a
@@ -46,28 +46,19 @@ Build casatools and casatasks
   The ``CASA_BRANCH=...`` setting is sticky in the sense that future ``pixi run ...`` commands
   will not change the branch.
 
+Individual Build steps
+======================
+
 Fetch Source Code
-=================
+-----------------
 - ``pixi run -e intel-mac clone-repo``
   Fetch all of the CASA6 source code
 
-Test Build Environment
-======================
-- ``pixi install -e intel-mac``
-  Install ``intel-mac`` environment.
-- ``pixi list -e intel-mac``
-  Check on what packages are installed
-- ``pixi run -e intel-mac python -V``
-  See which version of Python is actually being used. Substitute other commands to
-  check things out.
-- ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
-  See the path to NumPy.
-
 Build components in order
-=========================
+-------------------------
 
 Intel macOS
------------
+^^^^^^^^^^^
 - ``pixi run -e intel-mac build-casacore``
 - ``pixi run -e intel-mac build-libsakura``
 - ``pixi run -e intel-mac build-casacpp``
@@ -75,7 +66,7 @@ Intel macOS
 - ``pixi run -e intel-mac build-casatasks``
 
 ARM macOS
----------
+^^^^^^^^^
 - ``pixi run -e arm-mac build-casacore``
 - ``pixi run -e arm-mac build-libsakura``
 - ``pixi run -e arm-mac build-casacpp``
@@ -103,6 +94,18 @@ Environment Management
   Start a bash shell to explore a particular environment.
 - ``pixi info``
   Show info about all of the pixi environments.
+
+Test Build Environment
+======================
+- ``pixi install -e intel-mac``
+  Install ``intel-mac`` environment.
+- ``pixi list -e intel-mac``
+  Check on what packages are installed
+- ``pixi run -e intel-mac python -V``
+  See which version of Python is actually being used. Substitute other commands to
+  check things out.
+- ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
+  See the path to NumPy.
 
 ccache Management
 =================
