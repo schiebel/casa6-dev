@@ -59,19 +59,19 @@ Build components in order
 
 Intel macOS
 ^^^^^^^^^^^
-- ``pixi run -e intel-mac build-casacore``
-- ``pixi run -e intel-mac build-libsakura``
-- ``pixi run -e intel-mac build-casacpp``
-- ``pixi run -e intel-mac build-casatools``
-- ``pixi run -e intel-mac build-casatasks``
+1. ``pixi run -e intel-mac build-casacore``
+2. ``pixi run -e intel-mac build-libsakura``
+3. ``pixi run -e intel-mac build-casacpp``
+4. ``pixi run -e intel-mac build-casatools``
+5. ``pixi run -e intel-mac build-casatasks``
 
 ARM macOS
 ^^^^^^^^^
-- ``pixi run -e arm-mac build-casacore``
-- ``pixi run -e arm-mac build-libsakura``
-- ``pixi run -e arm-mac build-casacpp``
-- ``pixi run -e arm-mac build-casatools``
-- ``pixi run -e arm-mac build-casatasks``
+1. ``pixi run -e arm-mac build-casacore``
+2. ``pixi run -e arm-mac build-libsakura``
+3. ``pixi run -e arm-mac build-casacpp``
+4. ``pixi run -e arm-mac build-casatools``
+5. ``pixi run -e arm-mac build-casatasks``
 
 Run Very Simple Test
 ====================
