@@ -1,5 +1,5 @@
 ======================
-Automated CASA6 Builds
+Automated CASA6 builds
 ======================
 
 This directory contains the build artifacts for building
@@ -11,7 +11,7 @@ which ensures that the build is reproducable.
 
 To use this, you must install `pixi <https://pixi.sh/latest/>`__.
 
-Useful pixi Commands
+Useful pixi commands
 ====================
 This build process was created because I needed a build of
 `CASA6 <casa.nrao.edu>`__ for an Intel MacBook. CASA
@@ -36,7 +36,7 @@ To keep local edits, add ``DEVELOPMENT_MODE=true`` to the beginning of all
 ``pixi run ...`` commands or ``export`` it as an environment variable. *Maybe
 this will be made smarter in the future.*
 
-Complete build casatools and casatasks
+Complete build of casatools and casatasks
 ======================================
 - ``VERBOSE=1 pixi run -e intel-mac build-all``
   This is the only command you need to execute to build ``casatools`` and ``casatasks``. The
@@ -46,10 +46,10 @@ Complete build casatools and casatasks
   The ``CASA_BRANCH=...`` setting is sticky in the sense that future ``pixi run ...`` commands
   will not change the branch.
 
-Individual Build steps
+Individual build steps
 ======================
 
-Fetch Source Code
+Fetch source code
 -----------------
 - ``pixi run -e intel-mac clone-repo``
   Fetch all of the CASA6 source code
@@ -73,14 +73,14 @@ ARM macOS
 4. ``pixi run -e arm-mac build-casatools``
 5. ``pixi run -e arm-mac build-casatasks``
 
-Run Very Simple Test
+Run very simple test
 ====================
 
 - ``pixi run -e intel-mac test``
   This test is run by default as part of the ``build-all`` task, but it can also be
   run by itself
 
-Environment Management
+Environment management
 ======================
 - ``pixi clean``
   Remove installed environments
@@ -95,7 +95,7 @@ Environment Management
 - ``pixi info``
   Show info about all of the pixi environments.
 
-Test Build Environment
+Test build environment
 ======================
 - ``pixi install -e intel-mac``
   Install ``intel-mac`` environment.
@@ -107,7 +107,7 @@ Test Build Environment
 - ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
   See the path to NumPy.
 
-ccache Management
+ccache management
 =================
 The commands use ``ccache`` for all builds. The ccache directory in beneath the
 ``tmp`` directory.
@@ -120,7 +120,7 @@ The commands use ``ccache`` for all builds. The ccache directory in beneath the
 - ``pixi run ccache-clean``
   Deletes everything in the cache, leaving it completely empty.
 
-Build Directory Management
+Build directory management
 ==========================
 These commands do not delete the source code directory so if you really want to
 start from scratch it doesn't hurt to remove the source code directory to insure
@@ -132,7 +132,7 @@ a **complete** build from scratch ``rm -rf src``.
   Remove the build directories, the ``ccache`` cache and the casatools and casatasks wheels.
 
 
-Where Are The Wheels
+Where are the wheels
 ====================
 After the build completes **successfully**, the wheels should be found in:
 
