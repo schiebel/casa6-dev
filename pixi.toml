@@ -1,8 +1,11 @@
-[project]
+[workspace]
 name = "casa6-dev"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
+# ============================================================
+# Base dependencies (no python pin here — features own that)
+# ============================================================
 [dependencies]
 # Core build dependencies (all platforms)
 cmake = ">=3.16"
@@ -11,9 +14,12 @@ grep = "*"
 ninja = "*"
 
 # CASA dependencies based on conda-forge recipes (common to all platforms)
-python = ">=3.8"
-numpy = ">=1.20"
-cython = ">=0.29"
+# NOTE: python version is NOT pinned here; it is controlled by the py3xx
+# features below. To change the default, update DEFAULT_PYTHON_VERSION
+# in the comment and change the "default python" feature references in
+# [environments] from py312 -> py313 (or whichever).
+numpy = ">=1.26"   # 1.26+ covers 3.11/3.12/3.13
+cython = ">=3.0"   # 3.0+ required for Python 3.12+
 pybind11 = ">=2.6"
 boost-cpp = ">=1.70"
 casacore = ">=3.5"
@@ -28,8 +34,16 @@ readline = "*"
 ncurses = "*"
 libxml2 = "*"
 libxslt = "*"
-grpc-cpp = ">=1.40"
-protobuf = ">=3.19"
+# grpc-cpp is NOT taken from conda-forge — the feedstock was frozen at
+# v1.51.1 (Feb 2023) with libprotobuf <=3.21.x, incompatible with Python
+# 3.12+. Instead, grpcio-tools from conda-forge ships a pre-built
+# grpc_cpp_plugin binary that CASA's cmake find_program() locates via PATH.
+openssl = "*"               # gRPC TLS
+zlib = "*"                  # gRPC compression
+# grpcio-tools ships grpc_cpp_plugin to $CONDA_PREFIX/bin where CASA's
+# find_program() will find it. Pin both to the same version as a pair.
+grpcio = ">=1.60"           # Python gRPC runtime bindings
+grpcio-tools = ">=1.60"     # ships grpc_cpp_plugin binary needed by CASA cmake
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
 # Note: libsakura not available on mac arm so it is handled by a build script
@@ -54,7 +68,9 @@ openjdk = "21.*"
 pkg-config = ">=0.29.2,<0.30"
 libxml2-devel = ">=2.15.0,<3"
 
+# ============================================================
 # Platform-specific dependencies
+# ============================================================
 [target.linux-64.dependencies]
 gcc_linux-64 = "*"
 gxx_linux-64 = "*"
@@ -82,7 +98,9 @@ gfortran = "*"  # Fortran compiler for ARM Mac
 llvm-openmp = "*"  # OpenMP support for ARM Mac
 swig = "*"  # Use whatever SWIG version is available on ARM64
 
-# Features for different configurations
+# ============================================================
+# Platform features
+# ============================================================
 [feature.intel-mac]
 platforms = ["osx-64"]
 
@@ -92,53 +110,158 @@ platforms = ["osx-arm64"]
 [feature.linux]
 platforms = ["linux-64"]
 
+# ============================================================
+# Python version features
+#
+# DEFAULT_PYTHON_VERSION:
+#   linux    -> 3.12  (change py312 -> py313 in linux envs to bump)
+#   arm-mac  -> 3.11  (grpc-cpp/protobuf libprotobuf ABI conflict on
+#   intel-mac -> 3.11   osx-arm64 and osx-64 in conda-forge; update
+#                       both Mac defaults when that is resolved)
+#
+# To change the Linux default: replace "py312" with "py313" (etc.)
+# in the linux-dev, build-linux, linux-312 solve-group entries below.
+# ============================================================
+[feature.py311.dependencies]
+python = "3.11.*"
+cython = ">=0.29"   # 0.29 is fine for 3.11
+numpy = ">=1.20"
+
+[feature.py312.dependencies]
+python = "3.12.*"
+cython = ">=3.0"    # 3.0+ required for 3.12
+numpy = ">=1.26"
+
+[feature.py313.dependencies]
+python = "3.13.*"
+cython = ">=3.0"
+numpy = ">=2.0"
+
+# ============================================================
+# Dev tools feature
+# ============================================================
 [feature.dev.dependencies]
 ipython = "*"
 jupyter = "*"
 matplotlib = "*"
 
-# Environment configurations
+# ============================================================
+# Environments
+#
+# Naming convention:
+#   <platform>-dev          default Python for that platform
+#   <platform>-<pyver>      explicit version, e.g. linux-312, linux-313
+#   build-<platform>        build-only default (no dev tools)
+#   build-<platform>-<ver>  build-only explicit version
+#
+# DEFAULT per platform:
+#   linux     -> py312  (update linux-dev + build-linux solve-groups to change)
+#   arm-mac   -> py312  (grpc-cpp ABI conflict resolved via grpcio-tools)
+#   intel-mac -> py311  (grpc-cpp/libprotobuf ABI conflict on osx-64 — update
+#                        intel-mac default to py312 once confirmed working)
+# ============================================================
 [environments]
-# Default environment (all platforms)
-default = ["dev"]
+# ---- Default environment ----
+# py312 is the default Python version. Change this and the solve-group
+# to switch the default (e.g. "py313" + solve-group = "default-313").
+default = {features = ["py312", "dev"], solve-group = "default-312"}
 
-# Platform-specific environments
-intel-mac = {features = ["intel-mac", "dev"], solve-group = "intel"}
-arm-mac = {features = ["arm-mac", "dev"], solve-group = "arm"}
-linux-dev = {features = ["linux", "dev"], solve-group = "linux"}
+# ---- Linux environments (default: py312) ----
+linux-dev   = {features = ["linux", "py312", "dev"], solve-group = "linux-312"}  # default
+linux-311   = {features = ["linux", "py311", "dev"], solve-group = "linux-311"}
+linux-312   = {features = ["linux", "py312", "dev"], solve-group = "linux-312"}
+linux-313   = {features = ["linux", "py313", "dev"], solve-group = "linux-313"}
 
-# Build-only environments (no dev tools)
-build-intel = {features = ["intel-mac"], solve-group = "build-intel"}
-build-arm = {features = ["arm-mac"], solve-group = "build-arm"}
-build-linux = {features = ["linux"], solve-group = "build-linux"}
+# ---- ARM Mac environments (default: py311) ----
+arm-mac     = {features = ["arm-mac", "py312", "dev"], solve-group = "arm-312"}  # default
+arm-311     = {features = ["arm-mac", "py311", "dev"], solve-group = "arm-311"}
+arm-312     = {features = ["arm-mac", "py312", "dev"], solve-group = "arm-312"}
+arm-313     = {features = ["arm-mac", "py313", "dev"], solve-group = "arm-313"}
 
+# ---- Intel Mac environments (default: py311) ----
+intel-mac   = {features = ["intel-mac", "py311", "dev"], solve-group = "intel-311"}  # default (py311 until tested)
+intel-311   = {features = ["intel-mac", "py311", "dev"], solve-group = "intel-311"}
+intel-312   = {features = ["intel-mac", "py312", "dev"], solve-group = "intel-312"}
+
+# ---- Build-only environments (no dev tools) ----
+build-linux      = {features = ["linux",     "py312"], solve-group = "build-linux-312"}  # default
+build-linux-311  = {features = ["linux",     "py311"], solve-group = "build-linux-311"}
+build-linux-312  = {features = ["linux",     "py312"], solve-group = "build-linux-312"}
+build-linux-313  = {features = ["linux",     "py313"], solve-group = "build-linux-313"}
+build-arm        = {features = ["arm-mac",   "py312"], solve-group = "build-arm-312"}   # default
+build-arm-311    = {features = ["arm-mac",   "py311"], solve-group = "build-arm-311"}
+build-arm-312    = {features = ["arm-mac",   "py312"], solve-group = "build-arm-312"}
+build-arm-313    = {features = ["arm-mac",   "py313"], solve-group = "build-arm-313"}
+build-intel      = {features = ["intel-mac", "py311"], solve-group = "build-intel-311"} # default
+build-intel-311  = {features = ["intel-mac", "py311"], solve-group = "build-intel-311"}
+build-intel-312  = {features = ["intel-mac", "py312"], solve-group = "build-intel-312"}
+
+# ============================================================
+# Tasks
+# ============================================================
 [tasks]
-clone-repo = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz bash build-scripts/clone-repo.sh"
-build-libsakura = "bash build-scripts/build-libsakura.sh"
-clone-dev = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
+clone-repo        = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz bash build-scripts/clone-repo.sh"
+build-libsakura   = "bash build-scripts/build-libsakura.sh"
+clone-dev         = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
-build-casacore = "bash build-scripts/build-casacore.sh"
-build-casacpp = "bash build-scripts/build-casacpp.sh"
-build-casatools = "bash build-scripts/build-casatools.sh"
-build-casatasks = "bash build-scripts/build-casatasks.sh"
-build-all = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
-build-dev = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
-clean = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build"
-clean-all = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build src/casa6/casatasks/dist src/casa6/casatools/dist tmp/ccache"
-ccache-stats = "ccache -d tmp/ccache --show-stats"
-ccache-cleanup = "ccache -d tmp/ccache --cleanup"
-ccache-clear = "ccache -d tmp/ccache --clear"
-test = "python -m pytest tests/"
+build-casacore    = "bash build-scripts/build-casacore.sh"
+fix-protobuf-cmake = "bash build-scripts/fix-protobuf-cmake.sh"
+build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake"]}
+build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake"]}
+build-casatasks   = "bash build-scripts/build-casatasks.sh"
+build-all         = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+build-dev         = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+clean-protobuf    = "rm -rf src/casa6/build/casacpp/protobuf_generated src/casa6/build/casatools/protobuf_generated"
+clean             = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build/casacpp src/casa6/build/casatools"
+clean-all         = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build src/casa6/casatasks/dist src/casa6/casatools/dist tmp/ccache"
+ccache-stats      = "ccache -d tmp/ccache --show-stats"
+ccache-cleanup    = "ccache -d tmp/ccache --cleanup"
+ccache-clear      = "ccache -d tmp/ccache --clear"
+test              = "python -m pytest tests/"
 
-# Platform-specific tasks
-[tasks.build-intel]
-cmd = "pixi run -e intel-mac build-all"
-description = "Build for Intel Mac"
+# ---- Convenience build-all tasks per platform/version ----
+# Default (platform default Python)
+[tasks.build-linux]
+cmd = "pixi run -e linux-dev build-all"
+description = "Build for Linux (default Python 3.12)"
 
 [tasks.build-arm]
 cmd = "pixi run -e arm-mac build-all"
-description = "Build for ARM Mac"
+description = "Build for ARM Mac (default Python 3.11)"
 
-[tasks.build-linux]
-cmd = "pixi run -e linux-dev build-all"
-description = "Build for Linux"
+[tasks.build-intel]
+cmd = "pixi run -e intel-mac build-all"
+description = "Build for Intel Mac (default Python 3.11)"
+
+# Explicit Python version targets
+[tasks.build-linux-311]
+cmd = "pixi run -e linux-311 build-all"
+description = "Build for Linux with Python 3.11"
+
+[tasks.build-linux-312]
+cmd = "pixi run -e linux-312 build-all"
+description = "Build for Linux with Python 3.12"
+
+[tasks.build-linux-313]
+cmd = "pixi run -e linux-313 build-all"
+description = "Build for Linux with Python 3.13"
+
+[tasks.build-arm-311]
+cmd = "pixi run -e arm-311 build-all"
+description = "Build for ARM Mac with Python 3.11"
+
+[tasks.build-arm-312]
+cmd = "pixi run -e arm-312 build-all"
+description = "Build for ARM Mac with Python 3.12"
+
+[tasks.build-arm-313]
+cmd = "pixi run -e arm-313 build-all"
+description = "Build for ARM Mac with Python 3.13"
+
+[tasks.build-intel-311]
+cmd = "pixi run -e intel-311 build-all"
+description = "Build for Intel Mac with Python 3.11"
+
+[tasks.build-intel-312]
+cmd = "pixi run -e intel-312 build-all"
+description = "Build for Intel Mac with Python 3.12"

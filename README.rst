@@ -3,142 +3,204 @@ Automated CASA6 builds
 ======================
 
 This directory contains the build artifacts for building
-`CASA6 <casa.nrao.edu>`__ with `pixi <https://pixi.sh/latest/>`__, which is a
+`CASA6 <https://casa.nrao.edu>`__ with `pixi <https://pixi.sh/latest/>`__, which is a
 wrapper around a `conda installation <https://mamba.readthedocs.io/en/latest/>`__.
 A ``pixi.toml`` file is created to configure package constraints in a declarative
 manner. From this, `pixi <https://pixi.sh/latest/>`__ creates a ``pixi.lock`` file
-which ensures that the build is reproducable.
+which ensures that the build is reproducible.
 
 To use this, you must install `pixi <https://pixi.sh/latest/>`__.
 
-Useful pixi commands
-====================
-This build process was created because I needed a build of
-`CASA6 <casa.nrao.edu>`__ for an Intel MacBook. CASA
-no longer supports Intel MacBooks [*as of Tue Sep 23 16:29:10 EDT 2025*], and
-*indeed*, Apple will also soon no longer support Intel MacBooks. However, this
-unfortunately means that Intel MacBooks are the only platform with which this
-build process has been tested. The version of casa6 tested was
-`6.7.3.0 <https://open-bitbucket.nrao.edu/projects/CASA/repos/casa6/commits/6d3646c1b9c5296e4b63798ad8ba722e3fe137a4>`__.
-Below are the `pixi <https://pixi.sh/latest/>`__ commands to build
-``casatools`` and ``casatasks``. 
+History
+=======
+**May 31, 2026**
+    Python versions were stuck at Python 3.11 because
+    `conda-forge <https://conda-forge.org/>`__ seems to have stopped updating
+    `grpc-cpp <https://anaconda.org/channels/conda-forge/packages/grpc-cpp/overview>`__.
+    To avoid this, the build switched from using Conda packages to using a pip
+    wheel which Google pre-builds.
 
-The `pixi <https://pixi.sh/latest/>`__ configuration is controled by the
-the ``pixi.toml`` file. It provides the constraints that pixi uses to direct
-the creation of ``pixi.lock`` file. If you want to generate a completely new
-environment resolution, delete ``pixi.lock``. This will result in
-`pixi <https://pixi.sh/latest/>`__ generating a list of new package versions
-which satisfy the constraints provided in ``pixi.toml``.
+Background
+==========
+This build process was originally created to build `CASA6 <https://casa.nrao.edu>`__
+on an Intel MacBook after CASA dropped official Intel Mac support
+[*as of Tue Sep 23 16:29:10 EDT 2025*]. It has since been extended to support
+ARM macOS and Linux, and to target Python 3.12+.
 
-All of these pixi commands build the **current origin state of a given branch**,
-stashing any modifications and fetching the current state from the git ``origin``.
-To keep local edits, add ``DEVELOPMENT_MODE=true`` to the beginning of all
-``pixi run ...`` commands or ``export`` it as an environment variable. *Maybe
-this will be made smarter in the future.*
+**Platform support:**
 
-Complete build of casatools and casatasks
-======================================
-- ``VERBOSE=1 pixi run -e intel-mac build-all``
-  This is the only command you need to execute to build ``casatools`` and ``casatasks``. The
-  remaining examples are useful but not required for a simple *one shot* build. To build a
-  branch **other than the main branch** set ``CASA_BRANCH=<desired-branch>`` as an environment
-  variable as ``VERBOSE`` is set here (*VERBOSE can be useful but is usually not used*)
-  The ``CASA_BRANCH=...`` setting is sticky in the sense that future ``pixi run ...`` commands
-  will not change the branch.
++---------------+----------+---------------------------------------------------+
+| Platform      | Default  | Notes                                             |
+|               | Python   |                                                   |
++===============+==========+===================================================+
+| Linux         | 3.12     | Full support; 3.11, 3.13 also available           |
++---------------+----------+---------------------------------------------------+
+| ARM macOS     | 3.12     | Full support; 3.11 also available                 |
++---------------+----------+---------------------------------------------------+
+| Intel macOS   | 3.11     | 3.12 available but less tested                    |
++---------------+----------+---------------------------------------------------+
+
+**Python version defaults** are controlled by the ``py3xx`` features in
+``pixi.toml``. To change the default for all platforms, find the comment
+``DEFAULT_PYTHON_VERSION`` in ``pixi.toml`` and update the environment
+references from ``py312`` to your desired version.
+
+Known constraints
+-----------------
+- ``grpc-cpp`` on conda-forge is frozen at v1.51.1 (Feb 2023) and is
+  incompatible with Python 3.12+. This build instead uses ``grpcio-tools``
+  from conda-forge, which ships a pre-built ``grpc_cpp_plugin`` binary that
+  CASA's cmake ``find_program()`` locates automatically.
+
+- The ``protobuf`` and ``grpcio`` cmake config files installed by conda-forge
+  have a target mismatch (``protobuf::libupb`` defined in gRPC's cmake but not
+  in protobuf's). The ``fix-protobuf-cmake`` task patches these files
+  automatically before each build. The patch is idempotent and is wired into
+  the ``build-all`` dependency chain.
+
+- If you switch Python versions or wipe the conda environment, run
+  ``pixi run clean-protobuf`` before rebuilding to discard stale protobuf-generated
+  C++ files (``*.pb.cc``/``*.pb.h``). These files embed a version check that
+  will fail if the ``protoc`` version that generated them differs from the
+  runtime protobuf headers.
+
+Complete build
+==============
+This is the only command needed for a full build of ``casatools`` and
+``casatasks``. It runs all steps in the correct order.
+
+- ``pixi run build-all``
+  Build using the default Python version for the current platform.
+
+- ``pixi run -e arm-312 build-all``
+  Build explicitly for ARM macOS with Python 3.12.
+
+- ``pixi run -e linux-313 build-all``
+  Build explicitly for Linux with Python 3.13.
+
+To build a branch other than ``master``, set ``CASA_BRANCH=<branch>`` as an
+environment variable. This setting is sticky — subsequent ``pixi run`` commands
+will not change the branch unless you set it again.
+
+To keep local edits rather than resetting to origin, prefix commands with
+``CASA_DEVELOPMENT_MODE=true`` or export it as an environment variable.
 
 Individual build steps
 ======================
 
 Fetch source code
 -----------------
-- ``pixi run -e intel-mac clone-repo``
-  Fetch all of the CASA6 source code
+- ``pixi run clone-repo``
+  Fetch all CASA6 source code and apply patches.
 
 Build components in order
 -------------------------
+Steps are run automatically by ``build-all``, but can be run individually.
+Substitute ``-e arm-mac``, ``-e linux-dev``, or ``-e intel-mac`` as needed.
 
-Intel macOS
-^^^^^^^^^^^
-1. ``pixi run -e intel-mac build-casacore``
-2. ``pixi run -e intel-mac build-libsakura``
-3. ``pixi run -e intel-mac build-casacpp``
-4. ``pixi run -e intel-mac build-casatools``
-5. ``pixi run -e intel-mac build-casatasks``
+1. ``pixi run build-casacore``
+2. ``pixi run build-libsakura``
+   (Skipped automatically on ARM macOS — libsakura is not available there.)
+3. ``pixi run build-casacpp``
+   (Runs ``fix-protobuf-cmake`` automatically as a dependency.)
+4. ``pixi run build-casatools``
+   (Runs ``fix-protobuf-cmake`` automatically as a dependency.)
+5. ``pixi run build-casatasks``
 
-ARM macOS
-^^^^^^^^^
-1. ``pixi run -e arm-mac build-casacore``
-2. ``pixi run -e arm-mac build-libsakura``
-3. ``pixi run -e arm-mac build-casacpp``
-4. ``pixi run -e arm-mac build-casatools``
-5. ``pixi run -e arm-mac build-casatasks``
-
-Run very simple test
-====================
-
-- ``pixi run -e intel-mac test``
-  This test is run by default as part of the ``build-all`` task, but it can also be
-  run by itself
+Run tests
+=========
+- ``pixi run test``
+  Run the test suite. This is also run automatically as part of ``build-all``.
 
 Environment management
 ======================
-- ``pixi clean``
-  Remove installed environments
-- ``pixi reinstall --environment intel-mac``
-  Rebuild the environment from scratch. This was useful once when the ``NumPy``
-  conda install seemed to be missing the NumPy header files.
-- ``pixi update swig``
-  The update command can be used to update individual packages. Be sure to also
-  update ``pixi.toml`` if there are related constraints for the updated package.
-- ``pixi shell -e intel-mac``
-  Start a bash shell to explore a particular environment.
+- ``pixi install``
+  Install/update all environments from ``pixi.lock``.
+- ``pixi shell -e arm-mac``
+  Start a bash shell in a particular environment.
 - ``pixi info``
-  Show info about all of the pixi environments.
+  Show info about all pixi environments.
+- ``pixi update swig``
+  Update an individual package. Also update any related constraints in
+  ``pixi.toml`` if necessary.
+- ``pixi list -e arm-mac``
+  Check what packages are installed in an environment.
+- ``pixi run -e arm-mac python -V``
+  Verify which Python version is active in an environment.
+- ``pixi run -e arm-mac python -c 'import numpy as np; print(np.get_include())'``
+  Verify the NumPy include path.
 
-Test build environment
-======================
-- ``pixi install -e intel-mac``
-  Install ``intel-mac`` environment.
-- ``pixi list -e intel-mac``
-  Check on what packages are installed
-- ``pixi run -e intel-mac python -V``
-  See which version of Python is actually being used. Substitute other commands to
-  check things out.
-- ``pixi run -e intel-mac python -c 'import numpy as np; print(np.get_include())'``
-  See the path to NumPy.
+If an environment gets into a bad state (e.g. after a ``pip install`` that
+downgrades conda-managed packages), delete it and reinstall cleanly::
+
+  rm -rf .pixi/envs/default
+  pixi install
+
+To reset all environments and re-solve from scratch::
+
+  rm -rf .pixi pixi.lock
+  pixi install
 
 ccache management
 =================
-The commands use ``ccache`` for all builds. The ccache directory in beneath the
-``tmp`` directory.
+All builds use ``ccache``, stored under the ``tmp/`` directory. A warm cache
+makes incremental rebuilds very fast.
 
 - ``pixi run ccache-stats``
-  Show ``ccache`` information. 
+  Show ccache statistics (hit rate, cache size, etc.).
 - ``pixi run ccache-cleanup``
-  Deletes old and less recently used files to bring the cache back within the **default**
-  size and file limits. It does not empty the entire cache.
-- ``pixi run ccache-clean``
-  Deletes everything in the cache, leaving it completely empty.
+  Remove old/less-recently-used files to bring the cache within size limits.
+  Does not empty the cache entirely.
+- ``pixi run ccache-clear``
+  Empty the cache completely.
 
 Build directory management
 ==========================
-These commands do not delete the source code directory so if you really want to
-start from scratch it doesn't hurt to remove the source code directory to insure
-a **complete** build from scratch ``rm -rf src``.
+These commands do not delete the source code. To force a truly clean checkout,
+remove the source directory manually: ``rm -rf src``.
+
+- ``pixi run clean-protobuf``
+  Remove only the protobuf-generated C++ files (``*.pb.cc``/``*.pb.h``).
+  Use this when switching Python or protobuf versions without doing a full
+  rebuild. Much faster than ``clean`` when only the protobuf gencode is stale.
 
 - ``pixi run clean``
-  Remove the build directories.
-- ``pixi run clean-all``
-  Remove the build directories, the ``ccache`` cache and the casatools and casatasks wheels.
+  Remove all CASA build directories (casacpp, casatools, casatasks, casacore).
+  Protobuf-generated files are removed as part of their parent build directories.
 
+- ``pixi run clean-all``
+  Remove build directories, the ccache cache, and the casatools/casatasks
+  wheels. Does not remove source code or the pixi environments.
+
+When to use each:
+
++---------------------+----------------------------------------------------------+
+| Situation           | Command                                                  |
++=====================+==========================================================+
+| Switched Python /   | ``pixi run clean-protobuf && pixi run build-casacpp``    |
+| protobuf version    |                                                          |
++---------------------+----------------------------------------------------------+
+| Normal clean build  | ``pixi run clean && pixi run build-all``                 |
++---------------------+----------------------------------------------------------+
+| Wiped conda env     | ``rm -rf .pixi/envs/default && pixi install &&``         |
+|                     | ``pixi run build-all``                                   |
+|                     | (``fix-protobuf-cmake`` runs automatically)               |
++---------------------+----------------------------------------------------------+
+| Full nuclear reset  | ``rm -rf .pixi pixi.lock && pixi install &&``            |
+|                     | ``pixi run build-all``                                   |
++---------------------+----------------------------------------------------------+
 
 Where are the wheels
 ====================
-After the build completes **successfully**, the wheels should be found in:
+After a successful build, wheels are found in:
 
-- ``src/casa6/casatools/dist``
-- ``src/casa6/casatasks/dist``
+- ``src/casa6/casatools/dist/``
+- ``src/casa6/casatasks/dist/``
 
-``casaconfig`` must *somehow* be installed or provided. I just unpack the
-wheels with ``unzip`` and make sure the unziped directories along with
-``casaconfig`` are available in my ``PYTHONPATH`` ( *or the current directory* ).
+The wheel filename encodes the Python version, e.g.
+``casatools-6.7.6.6-cp312-cp312-macosx_15_0_arm64.whl`` for Python 3.12 on
+ARM macOS.
+
+``casaconfig`` must also be installed or provided. The simplest approach is
+to unpack the wheels with ``unzip`` and ensure the unpacked directories along
+with ``casaconfig`` are on your ``PYTHONPATH`` (or in the current directory).
