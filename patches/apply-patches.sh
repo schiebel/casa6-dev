@@ -35,7 +35,7 @@ apply_patch_simple() {
 # Apply patches in order
 #apply_patch_simple "cxx14-casacore.patch" "C++14 standard patch for casacore"
 #apply_patch_simple "cxx14-casacpp.patch" "C++14 standard patch for casacpp"
-apply_patch_simple "casacore-arraytransform-fix.patch" "casacore arrayTransform template fix"
+#apply_patch_simple "casacore-arraytransform-fix.patch" "casacore arrayTransform template fix" # >>>>------> code has been updated for arraytransform problem
 apply_patch_simple "fix-unique-ptr-copy.patch" "unique_ptr copy fix"
 apply_patch_simple "casacore-visibilityprocessing-not_fn.patch" "not_fn undefined fix"
 apply_patch_simple "casatools-builddir-fix.patch" "fix casatools setup.py"

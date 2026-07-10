@@ -72,7 +72,30 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     
     # Add flags to handle warnings as warnings, not errors
     CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
-    
+
+    # RPATH handling (macOS / Mach-O).
+    # casacpp's .dylibs install flat into $CONDA_PREFIX/lib, so a library's
+    # sibling dependencies live in the same directory as itself -- hence
+    # plain @loader_path (not @loader_path/../lib). @loader_path is Mach-O's
+    # relative-to-the-loading-binary token, the macOS analog of ELF's
+    # $ORIGIN used in the Linux branch below.
+    #
+    # NOTE: this alone is not sufficient. casacore/CMakeLists.txt,
+    # casatools/src/tools/CMakeLists.txt, and casatools/src/code/CMakeLists.txt
+    # all contain a plain (non-CACHE) set(CMAKE_INSTALL_NAME_DIR
+    # "${CMAKE_INSTALL_PREFIX}/lib") which silently shadows whatever we pass
+    # here on the command line, so every target still ends up with an
+    # absolute LC_ID_DYLIB regardless of this flag. See
+    # fix-install-name-dir.sh (run automatically as a dependency of this
+    # task) for the actual fix -- these CMAKE_INSTALL_RPATH/BUILD_WITH_
+    # INSTALL_RPATH settings are what let the corrected @rpath-based install
+    # names actually resolve at runtime, but they don't do anything on
+    # their own while the CMakeLists.txt override is still in place.
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_MACOSX_RPATH=ON"
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_INSTALL_RPATH=@loader_path;$CONDA_PREFIX/lib"
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON"
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_INSTALL_NAME_DIR=@rpath"
+
 else
     # Linux specific settings
     export CC="ccache gcc"
@@ -87,6 +110,15 @@ else
     export CCACHE_COMPRESS=1
     
     CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran -DUSE_SAKURA=ON"
+
+    # RPATH handling (Linux / ELF).
+    # $ORIGIN is the ELF equivalent of Mach-O's @loader_path above. Note
+    # CMAKE_MACOSX_RPATH and CMAKE_INSTALL_NAME_DIR are Mach-O-only concepts
+    # and are intentionally omitted here. $ORIGIN must be escaped (\$ORIGIN)
+    # so bash doesn't try to expand it as an (empty) shell variable before
+    # cmake ever sees it.
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_INSTALL_RPATH=\$ORIGIN/../lib:$CONDA_PREFIX/lib"
+    CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON"
 fi
 
 # Initialize ccache directory and show stats

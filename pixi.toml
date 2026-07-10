@@ -44,6 +44,10 @@ zlib = "*"                  # gRPC compression
 # find_program() will find it. Pin both to the same version as a pair.
 grpcio = ">=1.60"           # Python gRPC runtime bindings
 grpcio-tools = ">=1.60"     # ships grpc_cpp_plugin binary needed by CASA cmake
+pyarrow = "23.*"            # anchor only — forces libprotobuf alignment with
+                            # downstream xarray-ms/arcae environments; without this
+                            # there is a conflict (downstream) between versions of
+                            # libprotobuf.
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
 # Note: libsakura not available on mac arm so it is handled by a build script
@@ -204,10 +208,11 @@ clone-repo        = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/r
 build-libsakura   = "bash build-scripts/build-libsakura.sh"
 clone-dev         = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
-build-casacore    = "bash build-scripts/build-casacore.sh"
+fix-install-name-dir = "bash build-scripts/fix-install-name-dir.sh"
+build-casacore    = {cmd = "bash build-scripts/build-casacore.sh", depends-on = ["fix-install-name-dir"]}
 fix-protobuf-cmake = "bash build-scripts/fix-protobuf-cmake.sh"
-build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake"]}
-build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake"]}
+build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
+build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
 build-casatasks   = "bash build-scripts/build-casatasks.sh"
 build-all         = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev         = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
