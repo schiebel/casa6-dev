@@ -98,9 +98,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
 else
     # Linux specific settings
-    export CC="ccache gcc"
-    export CXX="ccache g++"
-    export FC=gfortran  # Fortran compiler (ccache doesn't work well with gfortran)
+    CC_BIN="${CC:-gcc}"
+    CXX_BIN="${CXX:-g++}"
+    export FC="${FC:-gfortran}"
+    [[ "$CC_BIN" == ccache* ]] && export CC="$CC_BIN" || export CC="ccache $CC_BIN"
+    [[ "$CXX_BIN" == ccache* ]] && export CXX="$CXX_BIN" || export CXX="ccache $CXX_BIN"
     export CPPFLAGS="-I$CONDA_PREFIX/include -I$(pwd)/../../casatools ${CPPFLAGS:-}"
     export LDFLAGS="-L$CONDA_PREFIX/lib ${LDFLAGS:-}"
     
@@ -109,7 +111,7 @@ else
     export CCACHE_MAXSIZE="15G"
     export CCACHE_COMPRESS=1
     
-    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran -DUSE_SAKURA=ON"
+    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=$FC -DCMAKE_Fortran_FLAGS=-fallow-argument-mismatch -DUSE_SAKURA=ON"
 
     # RPATH handling (Linux / ELF).
     # $ORIGIN is the ELF equivalent of Mach-O's @loader_path above. Note

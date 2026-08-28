@@ -3,6 +3,9 @@ name = "casa6-dev"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
+[activation.env]
+LIBSAKURA_URL = "https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz"
+
 # ============================================================
 # Base dependencies (no python pin here — features own that)
 # ============================================================
@@ -12,6 +15,8 @@ cmake = ">=3.16"
 make = "*"
 grep = "*"
 ninja = "*"
+flex = "*"
+bison = ">=3.0"
 
 # CASA dependencies based on conda-forge recipes (common to all platforms)
 # NOTE: python version is NOT pinned here; it is controlled by the py3xx
@@ -22,14 +27,15 @@ numpy = ">=1.26"   # 1.26+ covers 3.11/3.12/3.13
 cython = ">=3.0"   # 3.0+ required for Python 3.12+
 pybind11 = ">=2.6"
 boost-cpp = ">=1.70"
-casacore = ">=3.5"
+# Note: casacore is built from source with FFTPack support (via build-casacore task)
 wcslib = ">=7.7"
 cfitsio = ">=4.0"
 fftw = ">=3.3"
 gsl = ">=2.6"
 hdf5 = ">=1.12"
 openblas = "*"
-lapack = "*"
+libblas = "*"
+liblapack = "*"
 readline = "*"
 ncurses = "*"
 libxml2 = "*"
@@ -204,7 +210,7 @@ build-intel-312  = {features = ["intel-mac", "py312"], solve-group = "build-inte
 # Tasks
 # ============================================================
 [tasks]
-clone-repo        = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz bash build-scripts/clone-repo.sh"
+clone-repo        = "bash build-scripts/clone-repo.sh"
 build-libsakura   = "bash build-scripts/build-libsakura.sh"
 clone-dev         = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
