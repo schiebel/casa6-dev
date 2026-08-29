@@ -1,0 +1,31 @@
+--- casatools/binding/include/casa_typemaps.i
++++ casatools/binding/include/casa_typemaps.i
+@@ -20,6 +20,27 @@
+ #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+ #include <numpy/arrayobject.h>
+ 
++#if PY_MAJOR_VERSION >= 3
++#ifndef PyInt_Check
++#define PyInt_Check(op) PyLong_Check(op)
++#endif
++#ifndef PyInt_AsLong
++#define PyInt_AsLong(op) PyLong_AsLong(op)
++#endif
++#ifndef PyInt_FromLong
++#define PyInt_FromLong(op) PyLong_FromLong(op)
++#endif
++#ifndef PyString_Check
++#define PyString_Check(op) (PyBytes_Check(op) || PyUnicode_Check(op))
++#endif
++#ifndef PyString_AsString
++#define PyString_AsString(op) (PyUnicode_Check(op) ? PyUnicode_AsUTF8(op) : PyBytes_AsString(op))
++#endif
++#ifndef PyString_FromString
++#define PyString_FromString(op) PyUnicode_FromString(op)
++#endif
++#endif
++
+ using casac::record;
+ using namespace casac;
+ 
+

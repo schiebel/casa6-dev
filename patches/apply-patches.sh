@@ -43,6 +43,7 @@ apply_patch_simple "casatools-wheel-libgcc-fix.patch" "fix casatool wheel bundli
 apply_patch_simple "casatasks-copy-ignore-existing.patch" "fix copy commands so they do not fail for existing dest"
 apply_patch_simple "casacore-remove-pipe.patch" "remove casacore -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
 apply_patch_simple "casacpp-remove-pipe.patch" "remove casacpp -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
+apply_patch_simple "casatools-py312-swig-typemaps.patch" "casatools Python 3.12 SWIG typemaps compatibility"
+apply_patch_simple "casatools-msmetadata-counting-iterator.patch" "casatools msmetadata counting_iterator operator== for C++17/libc++"
 
-apply_patch_simple "swig45-python3-compat.patch" "Restore Python 2 compatibility macros for SWIG 4.5.0+"
 echo "All patch operations completed"

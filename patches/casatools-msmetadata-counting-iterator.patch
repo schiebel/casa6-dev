@@ -1,0 +1,15 @@
+--- casatools/src/tools/msmetadata/msmetadata_cmpt.cc
++++ casatools/src/tools/msmetadata/msmetadata_cmpt.cc
+@@ -81,8 +81,9 @@ using namespace casa;
+ namespace casac {
+ 
+ template<class T> struct counting_iterator : public std::iterator<std::input_iterator_tag, T> {
+-    bool operator!=(const counting_iterator &other) { return val != other.val; }
+-    T operator*( ) { return val; }
++    bool operator==(const counting_iterator &other) const { return val == other.val; }
++    bool operator!=(const counting_iterator &other) const { return val != other.val; }
++    T operator*( ) const { return val; }
+     void operator++( ) { ++val; }
+     counting_iterator( T v ) : val(v) { }
+     T val;
+
