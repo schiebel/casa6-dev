@@ -58,17 +58,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export CCACHE_MAXSIZE="15G"
     export CCACHE_COMPRESS=1
     
-    # Check if we're on ARM64 (where libsakura is not available)
-    if [[ "$(uname -m)" == "arm64" ]]; then
-        echo "Warning: Building on ARM64 Mac - libsakura not available"
-        CMAKE_SAKURA_FLAGS="-DUSE_SAKURA=OFF"
-    else
-        echo "Building on Intel Mac with libsakura support"
-        CMAKE_SAKURA_FLAGS="-DUSE_SAKURA=ON"
-    fi
-    
     # CMake flags - let CMake use environment variables for compilers
-    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran -DOpenMP_ROOT=$CONDA_PREFIX $CMAKE_SAKURA_FLAGS"
+    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran -DOpenMP_ROOT=$CONDA_PREFIX"
     
     # Add flags to handle warnings as warnings, not errors
     CMAKE_EXTRA_FLAGS="$CMAKE_EXTRA_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
@@ -111,7 +102,7 @@ else
     export CCACHE_MAXSIZE="15G"
     export CCACHE_COMPRESS=1
     
-    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=$FC -DCMAKE_Fortran_FLAGS=-fallow-argument-mismatch -DUSE_SAKURA=ON"
+    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=$FC -DCMAKE_Fortran_FLAGS=-fallow-argument-mismatch"
 
     # RPATH handling (Linux / ELF).
     # $ORIGIN is the ELF equivalent of Mach-O's @loader_path above. Note

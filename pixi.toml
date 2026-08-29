@@ -4,7 +4,7 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
 [activation.env]
-LIBSAKURA_URL = "https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz"
+LIBSAKURA_URL = "https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.2.tar.gz"
 
 # ============================================================
 # Base dependencies (no python pin here — features own that)
@@ -56,7 +56,7 @@ pyarrow = "23.*"            # anchor only — forces libprotobuf alignment with
                             # libprotobuf.
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
-# Note: libsakura not available on mac arm so it is handled by a build script
+libsakura = ">=5.3"
 log4cxx = "*"  # Logging framework for C++ (required by libsakura)
 
 # Python dependencies

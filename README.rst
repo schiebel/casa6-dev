@@ -100,7 +100,6 @@ Substitute ``-e arm-mac``, ``-e linux-dev``, or ``-e intel-mac`` as needed.
 
 1. ``pixi run build-casacore``
 2. ``pixi run build-libsakura``
-   (Skipped automatically on ARM macOS — libsakura is not available there.)
 3. ``pixi run build-casacpp``
    (Runs ``fix-protobuf-cmake`` automatically as a dependency.)
 4. ``pixi run build-casatools``
