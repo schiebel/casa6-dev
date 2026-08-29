@@ -1,0 +1,46 @@
+diff --git a/casatools/binding/include/swigconvert_python3.h b/casatools/binding/include/swigconvert_python3.h
+index 45b3d9dfdd..77ed0d74c2 100644
+--- casatools/binding/include/swigconvert_python3.h
++++ casatools/binding/include/swigconvert_python3.h
+@@ -7,6 +7,41 @@
+ #include <string>
+ #include <casaswig_types.h>
+ 
++#if PY_MAJOR_VERSION >= 3
++#include <casacore/casa/Exceptions/Error.h>
++
++#ifndef PyInt_Check
++#define PyInt_Check                     PyLong_Check
++#define PyInt_FromLong                  PyLong_FromLong
++#define PyInt_FromUnsignedLong          PyLong_FromUnsignedLong
++#define PyInt_AsLong                    PyLong_AsLong
++#define PyInt_AsUnsignedLong            PyLong_AsUnsignedLong
++#define PyInt_Type                      PyLong_Type
++#define PyNumber_Int                    PyNumber_Long
++#endif
++
++#ifndef PyString_Check
++inline bool PyString_Check( PyObject *o ) {
++    return PyBytes_Check(o) || PyUnicode_Check(o);
++}
++#endif
++
++#ifndef PyString_FromString
++#define PyString_FromString             PyUnicode_FromString
++#endif
++
++#ifndef PyString_AsString
++inline char *PyString_AsString( PyObject *o ) {
++    if ( PyUnicode_Check(o) ) {
++        return (char *)PyUnicode_AsUTF8(o);
++    } else if ( PyBytes_Check(o) ) {
++        return PyBytes_AS_STRING(o);
++    } else {
++        throw casacore::AipsError( "could not convert python object to string" );
++    }
++}
++#endif
++#endif
+ namespace casac {
+ 
+     PyObject *fetch_dict_value( PyObject *dict, const char *key );

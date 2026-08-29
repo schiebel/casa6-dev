@@ -20,7 +20,7 @@ apply_patch_simple() {
         echo "✓ $description applied successfully"
     else
         # Check if it failed because already applied
-        if grep -q "Reversed.*already applied\|already applied" /tmp/patch_output.log; then
+        if grep -q "Reversed.*applied\|already applied" /tmp/patch_output.log; then
             echo "✓ $description already applied (skipping)"
         elif grep -q "FAILED\|reject" /tmp/patch_output.log; then
             echo "✗ $description failed to apply - conflicts detected"
@@ -44,4 +44,5 @@ apply_patch_simple "casatasks-copy-ignore-existing.patch" "fix copy commands so 
 apply_patch_simple "casacore-remove-pipe.patch" "remove casacore -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
 apply_patch_simple "casacpp-remove-pipe.patch" "remove casacpp -pipe flag which causes problems from intel macOS Sonoma (14.6.1)"
 
+apply_patch_simple "swig45-python3-compat.patch" "Restore Python 2 compatibility macros for SWIG 4.5.0+"
 echo "All patch operations completed"
