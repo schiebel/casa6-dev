@@ -14,3 +14,5 @@ tmp/
 # macOS
 .DS_Store
 
+# CASA runtime logs
+casa-*.log

@@ -3,9 +3,6 @@ name = "casa6-dev"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
-[activation.env]
-LIBSAKURA_URL = "https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.2.tar.gz"
-
 # ============================================================
 # Base dependencies (no python pin here — features own that)
 # ============================================================
@@ -220,7 +217,7 @@ fix-protobuf-cmake = "bash build-scripts/fix-protobuf-cmake.sh"
 build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
 build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
 build-casatasks   = "bash build-scripts/build-casatasks.sh"
-build-all         = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+build-all         = {depends-on = ["clone-repo", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev         = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 clean-protobuf    = "rm -rf src/casa6/build/casacpp/protobuf_generated src/casa6/build/casatools/protobuf_generated"
 clean             = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build/casacpp src/casa6/build/casatools"
