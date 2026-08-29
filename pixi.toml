@@ -12,6 +12,8 @@ cmake = ">=3.16"
 make = "*"
 grep = "*"
 ninja = "*"
+flex = "*"
+bison = ">=3.0"
 
 # CASA dependencies based on conda-forge recipes (common to all platforms)
 # NOTE: python version is NOT pinned here; it is controlled by the py3xx
@@ -22,14 +24,15 @@ numpy = ">=1.26"   # 1.26+ covers 3.11/3.12/3.13
 cython = ">=3.0"   # 3.0+ required for Python 3.12+
 pybind11 = ">=2.6"
 boost-cpp = ">=1.70"
-casacore = ">=3.5"
+# Note: casacore is built from source with FFTPack support (via build-casacore task)
 wcslib = ">=7.7"
 cfitsio = ">=4.0"
 fftw = ">=3.3"
 gsl = ">=2.6"
 hdf5 = ">=1.12"
 openblas = "*"
-lapack = "*"
+libblas = "*"
+liblapack = "*"
 readline = "*"
 ncurses = "*"
 libxml2 = "*"
@@ -50,7 +53,7 @@ pyarrow = "23.*"            # anchor only — forces libprotobuf alignment with
                             # libprotobuf.
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
-# Note: libsakura not available on mac arm so it is handled by a build script
+libsakura = ">=5.3"
 log4cxx = "*"  # Logging framework for C++ (required by libsakura)
 
 # Python dependencies
@@ -204,7 +207,7 @@ build-intel-312  = {features = ["intel-mac", "py312"], solve-group = "build-inte
 # Tasks
 # ============================================================
 [tasks]
-clone-repo        = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/refs/tags/libsakura-5.3.1.tar.gz bash build-scripts/clone-repo.sh"
+clone-repo        = "bash build-scripts/clone-repo.sh"
 build-libsakura   = "bash build-scripts/build-libsakura.sh"
 clone-dev         = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
@@ -214,7 +217,7 @@ fix-protobuf-cmake = "bash build-scripts/fix-protobuf-cmake.sh"
 build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
 build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
 build-casatasks   = "bash build-scripts/build-casatasks.sh"
-build-all         = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
+build-all         = {depends-on = ["clone-repo", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev         = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 clean-protobuf    = "rm -rf src/casa6/build/casacpp/protobuf_generated src/casa6/build/casatools/protobuf_generated"
 clean             = "rm -rf src/casa6/casatasks/build src/casa6/casatools/casacore/build src/casa6/casatools/build src/casa6/build/casacpp src/casa6/build/casatools"

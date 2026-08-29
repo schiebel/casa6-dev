@@ -1,14 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-# Fetch libsakura if URL is provided
+# Fetch libsakura source if LIBSAKURA_URL is explicitly set
 if [[ -n "${LIBSAKURA_URL:-}" ]]; then
     echo "Fetching libsakura from: $LIBSAKURA_URL"
     mkdir -p src
     (cd src && (curl -fsSL "${LIBSAKURA_URL}" | tar -zxf - || { echo "Download or extraction of libsakura failed"; exit 1; } ) )
 else
-    echo "No LIBSAKURA_URL provided, cannot download libsakura"
-    exit 1
+    echo "LIBSAKURA_URL not set — using conda-installed libsakura (default)"
 fi
 
 echo "Cloning CASA6 repository..."

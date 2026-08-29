@@ -99,13 +99,16 @@ Steps are run automatically by ``build-all``, but can be run individually.
 Substitute ``-e arm-mac``, ``-e linux-dev``, or ``-e intel-mac`` as needed.
 
 1. ``pixi run build-casacore``
-2. ``pixi run build-libsakura``
-   (Skipped automatically on ARM macOS — libsakura is not available there.)
-3. ``pixi run build-casacpp``
+2. ``pixi run build-casacpp``
    (Runs ``fix-protobuf-cmake`` automatically as a dependency.)
-4. ``pixi run build-casatools``
+3. ``pixi run build-casatools``
    (Runs ``fix-protobuf-cmake`` automatically as a dependency.)
-5. ``pixi run build-casatasks``
+4. ``pixi run build-casatasks``
+
+Optional: build libsakura from source
+-------------------------------------
+``libsakura`` is installed automatically via Conda Forge. To compile it locally from source instead:
+- ``pixi run build-libsakura``
 
 Run tests
 =========

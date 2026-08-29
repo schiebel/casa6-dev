@@ -24,6 +24,8 @@ rm -rf build/ dist/ *.egg-info/
 # Set environment variables
 export CASACPP_ROOT="$CONDA_PREFIX"
 export CASA_BUILD_TYPE="Release"
+export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$CONDA_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CMAKE_PREFIX_PATH="$CONDA_PREFIX:${CMAKE_PREFIX_PATH:-}"
 
 # ccache configuration - use project-wide ccache directory
 export CCACHE_DIR="$PROJECT_ROOT/tmp/ccache"
@@ -40,8 +42,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export CXXFLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations ${CXXFLAGS:-}"
     export CFLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations ${CFLAGS:-}"
 else
-    export CC="ccache gcc"
-    export CXX="ccache g++"
+    CC_BIN="${CC:-gcc}"
+    CXX_BIN="${CXX:-g++}"
+    [[ "$CC_BIN" == ccache* ]] && export CC="$CC_BIN" || export CC="ccache $CC_BIN"
+    [[ "$CXX_BIN" == ccache* ]] && export CXX="$CXX_BIN" || export CXX="ccache $CXX_BIN"
     export CPPFLAGS="-I$CONDA_PREFIX/include -I$NUMPY_INCLUDE ${CPPFLAGS:-}"
     export LDFLAGS="-L$CONDA_PREFIX/lib ${LDFLAGS:-}"
 fi
