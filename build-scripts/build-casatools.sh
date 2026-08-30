@@ -24,6 +24,12 @@ rm -rf build/ dist/ *.egg-info/
 # Set environment variables
 export CASACPP_ROOT="$CONDA_PREFIX"
 export CASA_BUILD_TYPE="Release"
+# [activation.env] already exports these for the pixi shell itself, but
+# re-export them explicitly here too so they are guaranteed to reach the
+# cmake subprocess setup.py spawns, regardless of how it's invoked below
+# (build_ext in-process vs. the pip/wheel fallback paths).
+export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$CONDA_PREFIX/share/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CMAKE_PREFIX_PATH="$CONDA_PREFIX:${CMAKE_PREFIX_PATH:-}"
 
 # ccache configuration - use project-wide ccache directory
 export CCACHE_DIR="$PROJECT_ROOT/tmp/ccache"
@@ -35,13 +41,19 @@ NUMPY_INCLUDE=`python -c 'import numpy as np; print(np.get_include())'`
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export CC="ccache clang"
     export CXX="ccache clang++"
+    source "${PROJECT_ROOT}/build-scripts/setup-intel-mac-ld.sh"
     export CPPFLAGS="-I$CONDA_PREFIX/include -I$NUMPY_INCLUDE ${CPPFLAGS:-}"
     export LDFLAGS="-L$CONDA_PREFIX/lib ${LDFLAGS:-}"
     export CXXFLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations ${CXXFLAGS:-}"
     export CFLAGS="-Wno-error=deprecated-declarations -Wno-deprecated-declarations ${CFLAGS:-}"
 else
-    export CC="ccache gcc"
-    export CXX="ccache g++"
+    # Preserve whatever toolchain the pixi env already set (CC/CXX) instead
+    # of hardcoding host gcc/g++, wrapping with ccache only if it isn't
+    # already wrapped.
+    CC_BIN="${CC:-gcc}"
+    CXX_BIN="${CXX:-g++}"
+    [[ "$CC_BIN" == ccache* ]] && export CC="$CC_BIN" || export CC="ccache $CC_BIN"
+    [[ "$CXX_BIN" == ccache* ]] && export CXX="$CXX_BIN" || export CXX="ccache $CXX_BIN"
     export CPPFLAGS="-I$CONDA_PREFIX/include -I$NUMPY_INCLUDE ${CPPFLAGS:-}"
     export LDFLAGS="-L$CONDA_PREFIX/lib ${LDFLAGS:-}"
 fi
@@ -64,6 +76,8 @@ echo "  CFLAGS=$CFLAGS"
 echo "  CXXFLAGS=$CXXFLAGS"
 echo "  CPPFLAGS=$CPPFLAGS"
 echo "  LDFLAGS=$LDFLAGS"
+echo "  CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH"
+echo "  PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
 
 # Try building with explicit build directory creation
 echo "Building casatools with setuptools..."

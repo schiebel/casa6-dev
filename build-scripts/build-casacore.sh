@@ -25,6 +25,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS specific settings
     export CC="ccache clang"
     export CXX="ccache clang++"
+    source "${PROJECT_ROOT}/build-scripts/setup-intel-mac-ld.sh"
     export FC=gfortran
     
     # Set OpenMP flags for macOS
@@ -39,14 +40,20 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran -DOpenMP_ROOT=$CONDA_PREFIX"
     
 else
-    # Linux specific settings
-    export CC="ccache gcc"
-    export CXX="ccache g++"
-    export FC=gfortran
+    # Linux specific settings.
+    # Preserve whatever toolchain the pixi env already set (CC/CXX/FC) instead
+    # of hardcoding host gcc/g++/gfortran, wrapping with ccache only if it
+    # isn't already wrapped. -fallow-argument-mismatch is needed for modern
+    # gfortran to accept legacy FFTPack argument-type mismatches.
+    CC_BIN="${CC:-gcc}"
+    CXX_BIN="${CXX:-g++}"
+    export FC="${FC:-gfortran}"
+    [[ "$CC_BIN" == ccache* ]] && export CC="$CC_BIN" || export CC="ccache $CC_BIN"
+    [[ "$CXX_BIN" == ccache* ]] && export CXX="$CXX_BIN" || export CXX="ccache $CXX_BIN"
     export CPPFLAGS="-I$CONDA_PREFIX/include ${CPPFLAGS:-}"
     export LDFLAGS="-L$CONDA_PREFIX/lib ${LDFLAGS:-}"
     
-    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=gfortran"
+    CMAKE_EXTRA_FLAGS="-DCMAKE_Fortran_COMPILER=$FC -DCMAKE_Fortran_FLAGS=-fallow-argument-mismatch"
 fi
 
 # ccache configuration

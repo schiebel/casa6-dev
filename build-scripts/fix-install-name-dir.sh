@@ -34,17 +34,34 @@ set -euo pipefail
 # actually take effect. CMAKE_MACOSX_RPATH TRUE (set alongside these
 # lines) is left untouched -- it was already correct.
 #
+# Requires GNU sed (provided by the 'sed' conda-forge package in pixi.toml),
+# which supports -i without a backup suffix on all platforms, avoiding the
+# BSD sed -i '' quoting pitfall on macOS.
+#
 # Idempotent: safe to run on every build, same as fix-protobuf-cmake.sh.
+
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "Fixing hardcoded CMAKE_INSTALL_NAME_DIR in casacore/casatools CMakeLists.txt files..."
 
-cd src/casa6
-
 FILES=(
-    "casatools/casacore/CMakeLists.txt"
-    "casatools/src/tools/CMakeLists.txt"
-    "casatools/src/code/CMakeLists.txt"
+    "${PROJECT_ROOT}/src/casa6/casatools/casacore/CMakeLists.txt"
+    "${PROJECT_ROOT}/src/casa6/casatools/src/tools/CMakeLists.txt"
+    "${PROJECT_ROOT}/src/casa6/casatools/src/code/CMakeLists.txt"
 )
+
+# [[:space:]]* after 'set' handles both 'set(...)' and 'set (...)' -- both
+# forms appear in this source tree. Match everything up to the FIRST closing
+# paren rather than assuming it sits directly against the closing quote,
+# since the actual source has a space before it, e.g.
+# set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib" ). The /g flag
+# means it's safe to always run this rather than skip a whole file just
+# because SOME line in it is already patched -- a file can have more than
+# one CMAKE_INSTALL_NAME_DIR set() call (see casacore's CMakeLists.txt,
+# which has one guarded by if(APPLE) earlier in the file and a second,
+# later one that isn't); lines already at "@rpath" simply don't match and
+# are left untouched.
+PATTERN='s#set[[:space:]]*\(CMAKE_INSTALL_NAME_DIR "\$\{CMAKE_INSTALL_PREFIX\}[^)]*\)#set(CMAKE_INSTALL_NAME_DIR "@rpath")#g'
 
 for f in "${FILES[@]}"; do
     if [[ ! -f "$f" ]]; then
@@ -52,34 +69,16 @@ for f in "${FILES[@]}"; do
         continue
     fi
 
-    # sed only rewrites lines still matching the hardcoded-absolute-path
-    # pattern; lines already at "@rpath" don't match it and are left
-    # untouched, so it's safe to always run this rather than skip the whole
-    # file just because SOME line in it is already patched (a file can have
-    # more than one CMAKE_INSTALL_NAME_DIR set() call -- see casacore's
-    # CMakeLists.txt, which has one guarded by if(APPLE) earlier in the
-    # file and a second, later one that isn't).
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # BSD sed (macOS) requires an explicit (possibly empty) backup suffix.
-        # [[:space:]]* after 'set' handles both 'set(...)' and 'set (...)'
-        # -- both forms appear in this source tree. Match everything up to
-        # the FIRST closing paren rather than assuming it sits directly
-        # against the closing quote, since the actual source has a space
-        # before it, e.g. set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib" )
-        sed -i '' -E \
-            's#set[[:space:]]*\(CMAKE_INSTALL_NAME_DIR "\$\{CMAKE_INSTALL_PREFIX\}[^)]*\)#set(CMAKE_INSTALL_NAME_DIR "@rpath")#g' \
-            "$f"
-    else
-        sed -i -E \
-            's#set[[:space:]]*\(CMAKE_INSTALL_NAME_DIR "\$\{CMAKE_INSTALL_PREFIX\}[^)]*\)#set(CMAKE_INSTALL_NAME_DIR "@rpath")#g' \
-            "$f"
-    fi
+    # GNU sed -i (no suffix needed) works identically on Linux and macOS
+    # when GNU sed is on PATH (ensured by the 'sed' pixi dependency).
+    sed -i -E "$PATTERN" "$f"
 
     remaining=$(grep -cE 'CMAKE_INSTALL_NAME_DIR "\$\{CMAKE_INSTALL_PREFIX\}' "$f" || true)
     if [[ "$remaining" -eq 0 ]]; then
         echo "  $f: all CMAKE_INSTALL_NAME_DIR occurrences now @rpath"
     else
-        echo "  Warning: $remaining unpatched CMAKE_INSTALL_NAME_DIR occurrence(s) remain in $f -- check manually, source layout may have changed"
+        echo "  Warning: $remaining unpatched CMAKE_INSTALL_NAME_DIR occurrence(s) remain in $f"
+        echo "  Check manually -- source layout may have changed"
         grep -n 'CMAKE_INSTALL_NAME_DIR "\$\{CMAKE_INSTALL_PREFIX\}' "$f" | sed 's/^/    /'
     fi
 done

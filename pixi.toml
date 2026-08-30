@@ -11,6 +11,8 @@ platforms = ["linux-64", "osx-64", "osx-arm64"]
 cmake = ">=3.16"
 make = "*"
 grep = "*"
+sed = "*"                   # GNU sed — consistent -i behaviour across macOS and Linux
+coreutils = "*"             # GNU coreutils (install, etc.) — prevents MacPorts/system tools shadowing conda env
 ninja = "*"
 
 # CASA dependencies based on conda-forge recipes (common to all platforms)
@@ -47,7 +49,10 @@ grpcio-tools = ">=1.60"     # ships grpc_cpp_plugin binary needed by CASA cmake
 pyarrow = "23.*"            # anchor only — forces libprotobuf alignment with
                             # downstream xarray-ms/arcae environments; without this
                             # there is a conflict (downstream) between versions of
-                            # libprotobuf.
+                            # libprotobuf. NOTE: this is very likely the same
+                            # grpc-cpp/libprotobuf ABI conflict on osx-64 referenced
+                            # in the intel-mac python-version comments below — see
+                            # the note there before assuming py312 is unblocked.
 eigen = ">=3.3"
 xerces-c = "*"  # XML parsing library
 # Note: libsakura not available on mac arm so it is handled by a build script
@@ -86,6 +91,7 @@ swig = "*"    # Does casatools build with SWIG 4???????
 [target.osx-64.dependencies]
 clang = "*"
 clangxx = "*"
+
 #gfortran_osx-64 = ">=12,<14" # 15 also fails
 #gfortran_osx-64 = ">=12,!=14.*" # On Sonoma (14.6.1) gfortran builds fail and 14.* is bad
 #gfortran_osx-64 = ">=12"   # On Sonoma (14.6.1) gfortran builds fail
@@ -118,10 +124,18 @@ platforms = ["linux-64"]
 # Python version features
 #
 # DEFAULT_PYTHON_VERSION:
-#   linux    -> 3.12  (change py312 -> py313 in linux envs to bump)
-#   arm-mac  -> 3.11  (grpc-cpp/protobuf libprotobuf ABI conflict on
-#   intel-mac -> 3.11   osx-arm64 and osx-64 in conda-forge; update
-#                       both Mac defaults when that is resolved)
+#   linux     -> 3.12  (change py312 -> py313 in linux envs to bump)
+#   arm-mac   -> 3.12  (resolved via grpcio-tools)
+#   intel-mac -> 3.12  (py311 dropped by CASA 6.7.7+; nested f-string
+#                       syntax requires Python 3.12+)
+#
+# OPEN QUESTION carried over from tonight's testing: PR #1 still has
+# intel-mac defaulting to py311, citing an unresolved grpc-cpp/libprotobuf
+# ABI conflict on osx-64. That conflict is very likely what the
+# pyarrow=23.* anchor above already fixes (it exists specifically to force
+# libprotobuf alignment). If so, py312 should be safe here; if the ABI
+# conflict shows up anyway, that anchor is the first thing to check before
+# reverting this default to py311.
 #
 # To change the Linux default: replace "py312" with "py313" (etc.)
 # in the linux-dev, build-linux, linux-312 solve-group entries below.
@@ -161,8 +175,9 @@ matplotlib = "*"
 # DEFAULT per platform:
 #   linux     -> py312  (update linux-dev + build-linux solve-groups to change)
 #   arm-mac   -> py312  (grpc-cpp ABI conflict resolved via grpcio-tools)
-#   intel-mac -> py311  (grpc-cpp/libprotobuf ABI conflict on osx-64 — update
-#                        intel-mac default to py312 once confirmed working)
+#   intel-mac -> py312  (py311 dropped by CASA 6.7.7+ — nested f-string syntax
+#                        requires Python 3.12+; see the open question above
+#                        if a grpc-cpp/libprotobuf ABI conflict resurfaces)
 # ============================================================
 [environments]
 # ---- Default environment ----
@@ -183,8 +198,8 @@ arm-312     = {features = ["arm-mac", "py312", "dev"], solve-group = "arm-312"}
 arm-313     = {features = ["arm-mac", "py313", "dev"], solve-group = "arm-313"}
 
 # ---- Intel Mac environments (default: py311) ----
-intel-mac   = {features = ["intel-mac", "py311", "dev"], solve-group = "intel-311"}  # default (py311 until tested)
-intel-311   = {features = ["intel-mac", "py311", "dev"], solve-group = "intel-311"}
+intel-mac   = {features = ["intel-mac", "py312", "dev"], solve-group = "intel-312"}  # default
+intel-311   = {features = ["intel-mac", "py311", "dev"], solve-group = "intel-311"}  # py311 no longer supported by CASA 6.7.7+
 intel-312   = {features = ["intel-mac", "py312", "dev"], solve-group = "intel-312"}
 
 # ---- Build-only environments (no dev tools) ----
@@ -196,9 +211,19 @@ build-arm        = {features = ["arm-mac",   "py312"], solve-group = "build-arm-
 build-arm-311    = {features = ["arm-mac",   "py311"], solve-group = "build-arm-311"}
 build-arm-312    = {features = ["arm-mac",   "py312"], solve-group = "build-arm-312"}
 build-arm-313    = {features = ["arm-mac",   "py313"], solve-group = "build-arm-313"}
-build-intel      = {features = ["intel-mac", "py311"], solve-group = "build-intel-311"} # default
+build-intel      = {features = ["intel-mac", "py312"], solve-group = "build-intel-312"} # default
 build-intel-311  = {features = ["intel-mac", "py311"], solve-group = "build-intel-311"}
 build-intel-312  = {features = ["intel-mac", "py312"], solve-group = "build-intel-312"}
+
+# ============================================================
+# Activation environment variables
+# These are set in the pixi environment shell and inherited by
+# all subprocesses including setup.py cmake invocations.
+# ============================================================
+[activation.env]
+CMAKE_PREFIX_PATH = "$CONDA_PREFIX"
+PKG_CONFIG_PATH = "$CONDA_PREFIX/lib/pkgconfig"
+
 
 # ============================================================
 # Tasks
@@ -208,11 +233,12 @@ clone-repo        = "LIBSAKURA_URL=https://github.com/tnakazato/sakura/archive/r
 build-libsakura   = "bash build-scripts/build-libsakura.sh"
 clone-dev         = "CASA_DEVELOPMENT_MODE=true bash build-scripts/clone-repo.sh"
 update-submodules = "cd src/casa6 && git submodule update --recursive"
-fix-install-name-dir = "bash build-scripts/fix-install-name-dir.sh"
+fix-protobuf-cmake      = "bash build-scripts/fix-protobuf-cmake.sh"
+fix-install-name-dir    = "bash build-scripts/fix-install-name-dir.sh"
+fix-counting-iterator   = "bash build-scripts/fix-counting-iterator.sh"
 build-casacore    = {cmd = "bash build-scripts/build-casacore.sh", depends-on = ["fix-install-name-dir"]}
-fix-protobuf-cmake = "bash build-scripts/fix-protobuf-cmake.sh"
-build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
-build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir"]}
+build-casacpp     = {cmd = "bash build-scripts/build-casacpp.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir", "fix-counting-iterator"]}
+build-casatools   = {cmd = "bash build-scripts/build-casatools.sh", depends-on = ["fix-protobuf-cmake", "fix-install-name-dir", "fix-counting-iterator"]}
 build-casatasks   = "bash build-scripts/build-casatasks.sh"
 build-all         = {depends-on = ["clone-repo", "build-libsakura", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
 build-dev         = {depends-on = ["clone-dev", "build-casacore", "build-casacpp", "build-casatools", "build-casatasks"]}
