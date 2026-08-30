@@ -31,7 +31,21 @@ fftw = ">=3.3"
 gsl = ">=2.6"
 hdf5 = ">=1.12"
 openblas = "*"
-lapack = "*"
+# NOT "lapack = *" (conda-forge's real netlib reference LAPACK feedstock) --
+# that pulls a standalone Fortran build that, at least as of this writing,
+# resolves to a stale build (netlib LAPACK ~3.6.1) linked against the old
+# GCC 4.8-era libgfortran.so.3 ABI, which conflicts with the libgfortran.so.5
+# the rest of this environment uses (from gfortran_linux-64/libgfortran5).
+# Symptom if you get this wrong: `libgfortran.so.3: cannot open shared
+# object file` on any BLAS/LAPACK-touching import (e.g. `import numpy`),
+# even though the environment's own lib/ only ships .so.5 -- the netlib
+# lapack package brings in a liblapack.so.3 that itself needs .so.3.
+# libblas/liblapack (the *dispatch* metapackages) instead resolve to
+# whichever real implementation is installed -- openblas here -- via
+# symlinks, so they get openblas's LAPACK routines and its modern
+# gfortran ABI instead of a standalone stale Fortran build.
+libblas = "*"
+liblapack = "*"
 readline = "*"
 ncurses = "*"
 libxml2 = "*"
